@@ -32,11 +32,12 @@ model Business {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  chairs    Chair[]
-  services  Service[]
-  customers Customer[]
-  bookings  Booking[]
+  users       User[]
+  chairs      Chair[]
+  services    Service[]
+  customers   Customer[]
+  bookings    Booking[]
+  invitations Invitation[]
 }
 
 model User {
@@ -122,6 +123,16 @@ model Customer {
   bookings  Booking[]
 
   @@unique([businessId, email])
+}
+
+model Invitation {
+  id         String    @id @default(cuid())
+  businessId String
+  code       String    @unique
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  business Business @relation(fields: [businessId], references: [id])
 }
 
 model Booking {

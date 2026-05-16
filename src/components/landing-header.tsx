@@ -1,19 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function LandingHeader() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => setMounted(true), [])
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="max-w-5xl mx-auto px-6 flex h-16 items-center justify-between">
         <Link href="/" className="font-bold text-lg tracking-tight">
           Agendify
@@ -26,22 +19,7 @@ export function LandingHeader() {
         </nav>
 
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Cambiar tema"
-          >
-            {mounted ? (
-              theme === "dark" ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </Button>
+          <ThemeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Iniciar sesión</Link>
           </Button>
