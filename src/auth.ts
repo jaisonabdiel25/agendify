@@ -69,7 +69,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isPublicPath = publicPaths.includes(pathname)
 
       if (isAuthenticated && pathname === "/login") {
-        return Response.redirect(new URL("/dashboard", request.nextUrl))
+        const dest = session.user.role === "ADMIN" ? "/admin" : "/dashboard"
+        return Response.redirect(new URL(dest, request.nextUrl))
+      }
+
+      if (pathname.startsWith("/admin")) {
+        if (!isAuthenticated) return Response.redirect(new URL("/login", request.nextUrl))
+        if (session.user.role !== "ADMIN") return Response.redirect(new URL("/login", request.nextUrl))
+        return true
       }
 
       if (isPublicPath) return true

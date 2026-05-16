@@ -1,13 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { LoginForm } from "@/components/login-form"
+import { RegisterForm } from "@/components/modules/auth/register-form"
 
 export const metadata: Metadata = {
-  title: "Iniciar sesión — Agendify",
+  title: "Crear cuenta — Agendify",
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[1fr_480px]">
       {/* Left panel — always dark, branding */}
@@ -21,10 +21,10 @@ export default function LoginPage() {
             Plataforma de gestión
           </p>
           <h2 className="font-display italic font-light text-5xl lg:text-6xl leading-none text-zinc-50">
-            Tu negocio,<br />organizado.
+            Bienvenido<br />al equipo.
           </h2>
           <p className="mt-6 text-sm text-zinc-400 max-w-xs leading-relaxed">
-            Reservas, equipo y clientes en un solo lugar. Sin fricciones.
+            Usa el código que recibiste para activar tu cuenta.
           </p>
         </div>
 
@@ -46,22 +46,22 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             <div className="mb-10">
               <h1 className="font-display italic font-light text-4xl leading-[1.05]">
-                Bienvenido<br />de nuevo.
+                Crea tu<br />cuenta.
               </h1>
               <p className="text-sm text-muted-foreground mt-3">
-                Ingresa tus credenciales para continuar
+                Usa tu código de invitación para crear tu cuenta
               </p>
             </div>
 
-            <LoginForm />
+            <RegisterForm />
 
             <p className="text-sm text-muted-foreground mt-8">
-              ¿No tienes cuenta?{" "}
+              ¿Ya tienes cuenta?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="text-foreground underline underline-offset-4 hover:opacity-70 transition-opacity"
               >
-                Regístrate
+                Inicia sesión
               </Link>
             </p>
           </div>
