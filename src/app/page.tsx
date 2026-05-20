@@ -38,7 +38,7 @@ export default function HomePage() {
           Versión Beta
         </span>
 
-        <h1 className="animate-fade-up [animation-delay:80ms] font-display italic font-light text-[clamp(3rem,9vw,7rem)] leading-[0.92] tracking-tight max-w-4xl">
+        <h1 className="animate-fade-up [animation-delay:80ms] font-display font-light text-[clamp(3rem,9vw,7rem)] leading-[0.92] tracking-tight max-w-4xl">
           Gestiona tu negocio sin complicaciones.
         </h1>
 
@@ -69,7 +69,7 @@ export default function HomePage() {
             <p className="text-[0.65rem] tracking-[0.25em] uppercase text-muted-foreground mb-4">
               Características
             </p>
-            <h2 className="font-display italic font-light text-4xl sm:text-5xl leading-[1.05]">
+            <h2 className="font-display font-light text-4xl sm:text-5xl leading-[1.05]">
               Todo lo que necesitas
             </h2>
           </div>
@@ -87,7 +87,7 @@ export default function HomePage() {
                   <Icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="font-display italic font-normal text-xl mb-2">{title}</h3>
+                  <h3 className="font-display font-light text-xl mb-2">{title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
                 </div>
               </div>
@@ -100,7 +100,7 @@ export default function HomePage() {
       <section className="border-t border-border px-6 py-24">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-10">
           <div>
-            <h2 className="font-display italic font-light text-4xl sm:text-5xl leading-[1.05]">
+            <h2 className="font-display font-light text-4xl sm:text-5xl leading-[1.05]">
               ¿Listo para empezar?
             </h2>
             <p className="text-muted-foreground mt-3 text-sm">
