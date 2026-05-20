@@ -66,7 +66,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const pathname = request.nextUrl.pathname
 
       const publicPaths = ["/", "/login", "/register"]
-      const isPublicPath = publicPaths.includes(pathname)
+      const publicPrefixes = ["/reserve", "/api/public"]
+      const isPublicPath =
+        publicPaths.includes(pathname) ||
+        publicPrefixes.some((p) => pathname.startsWith(p))
 
       if (isAuthenticated && pathname === "/login") {
         const dest = session.user.role === "ADMIN" ? "/admin" : "/dashboard"

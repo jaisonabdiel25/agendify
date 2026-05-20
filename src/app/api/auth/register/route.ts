@@ -50,13 +50,18 @@ export async function POST(request: Request) {
     const passwordHash = await bcrypt.hash(password, 12)
 
     await prisma.$transaction(async (tx) => {
+      const existingOwner = await tx.user.findFirst({
+        where: { businessId: invitation.businessId, role: "OWNER" },
+        select: { id: true },
+      })
+
       await tx.user.create({
         data: {
           businessId: invitation.businessId,
           name,
           email,
           passwordHash,
-          role: "OWNER",
+          role: existingOwner ? "STAFF" : "OWNER",
         },
       })
 

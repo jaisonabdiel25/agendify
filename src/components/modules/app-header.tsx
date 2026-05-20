@@ -1,9 +1,11 @@
-import Link from "next/link"
-import { auth, signOut } from "@/auth"
-import { ThemeToggle } from "@/components/theme-toggle"
+import Link from "next/link";
+import { auth, signOut } from "@/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export async function AppHeader() {
-  const session = await auth()
+  const session = await auth();
+  const canManage =
+    session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
 
   return (
     <header className="border-b border-border px-6 py-4 shrink-0">
@@ -12,11 +14,35 @@ export async function AppHeader() {
           Agendify
         </Link>
         <div className="flex items-center gap-3">
+          {canManage && (
+            <Link
+              href="/chair"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Puestos
+            </Link>
+          )}
+          {canManage && (
+            <Link
+              href="/service"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Servicios
+            </Link>
+          )}
+          {canManage && (
+            <Link
+              href="/business"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Negocio
+            </Link>
+          )}
           <Link
-            href="/chair"
+            href="/schedule"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            Puestos
+            Cronograma
           </Link>
           {session?.user?.name && (
             <span className="text-sm text-muted-foreground hidden sm:block">
@@ -25,8 +51,8 @@ export async function AppHeader() {
           )}
           <form
             action={async () => {
-              "use server"
-              await signOut({ redirectTo: "/login" })
+              "use server";
+              await signOut({ redirectTo: "/login" });
             }}
           >
             <button
@@ -40,5 +66,5 @@ export async function AppHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
