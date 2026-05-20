@@ -64,7 +64,7 @@ export default async function AdminPage() {
       <main className="max-w-5xl mx-auto px-6 py-10 space-y-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="border border-border rounded-lg p-6">
-            <h2 className="font-display italic font-light text-2xl leading-tight mb-1">
+            <h2 className="font-display font-light text-2xl leading-tight mb-1">
               Nuevo negocio
             </h2>
             <p className="text-sm text-muted-foreground mb-6">
@@ -74,7 +74,7 @@ export default async function AdminPage() {
           </div>
 
           <div className="border border-border rounded-lg p-6">
-            <h2 className="font-display italic font-light text-2xl leading-tight mb-1">
+            <h2 className="font-display font-light text-2xl leading-tight mb-1">
               Nueva invitación
             </h2>
             <p className="text-sm text-muted-foreground mb-6">
@@ -85,7 +85,7 @@ export default async function AdminPage() {
         </div>
 
         <section>
-          <h2 className="font-display italic font-light text-2xl mb-4">Negocios</h2>
+          <h2 className="font-display font-light text-2xl mb-4">Negocios</h2>
           {businesses.length === 0 ? (
             <p className="text-sm text-muted-foreground">No hay negocios registrados.</p>
           ) : (
@@ -129,7 +129,7 @@ export default async function AdminPage() {
         </section>
 
         <section>
-          <h2 className="font-display italic font-light text-2xl mb-4">Invitaciones</h2>
+          <h2 className="font-display font-light text-2xl mb-4">Invitaciones</h2>
           {invitations.length === 0 ? (
             <p className="text-sm text-muted-foreground">No hay invitaciones generadas.</p>
           ) : (

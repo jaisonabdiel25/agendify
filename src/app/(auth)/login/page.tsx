@@ -20,7 +20,7 @@ export default function LoginPage() {
           <p className="text-[0.65rem] tracking-[0.25em] uppercase text-zinc-500 mb-5">
             Plataforma de gestión
           </p>
-          <h2 className="font-display italic font-light text-5xl lg:text-6xl leading-none text-zinc-50">
+          <h2 className="font-display font-light text-5xl lg:text-6xl leading-none text-zinc-50">
             Tu negocio,<br />organizado.
           </h2>
           <p className="mt-6 text-sm text-zinc-400 max-w-xs leading-relaxed">
@@ -45,7 +45,7 @@ export default function LoginPage() {
         <div className="flex-1 flex items-center justify-center px-8 py-12 lg:px-12">
           <div className="w-full max-w-sm">
             <div className="mb-10">
-              <h1 className="font-display italic font-light text-4xl leading-[1.05]">
+              <h1 className="font-display font-light text-4xl leading-[1.05]">
                 Bienvenido<br />de nuevo.
               </h1>
               <p className="text-sm text-muted-foreground mt-3">
