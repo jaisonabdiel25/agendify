@@ -4,49 +4,51 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
-import { ChairTable } from "@/components/modules/chair/chair-table"
+import { ServiceTable } from "@/components/modules/service/service-table"
 
-export default async function ChairPage() {
+export default async function ServicePage() {
   const session = await auth()
 
   if (session?.user?.role !== "OWNER" && session?.user?.role !== "ADMIN") {
     redirect("/dashboard")
   }
 
-  const [chairs, availableUsers] = await Promise.all([
-    prisma.chair.findMany({
+  const [services, chairs] = await Promise.all([
+    prisma.service.findMany({
       where: { businessId: session!.user.businessId },
-      include: { user: { select: { id: true, name: true, email: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
     }),
-    prisma.user.findMany({
-      where: {
-        businessId: session!.user.businessId,
-        chair: null,
-      },
-      select: { id: true, name: true, email: true },
+    prisma.chair.findMany({
+      where: { businessId: session!.user.businessId, isActive: true },
+      select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
   ])
+
+  const serializedServices = services.map((s) => ({
+    ...s,
+    price: s.price.toString(),
+    updatedAt: s.updatedAt.toISOString(),
+  }))
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display font-light text-3xl">Puestos</h1>
+          <h1 className="font-display font-light text-3xl">Servicios</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {chairs.length} {chairs.length === 1 ? "puesto" : "puestos"}
+            {services.length} {services.length === 1 ? "servicio" : "servicios"}
           </p>
         </div>
         <Button asChild>
-          <Link href="/chair/new">
+          <Link href="/service/new">
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo puesto
+            Nuevo servicio
           </Link>
         </Button>
       </div>
 
-      <ChairTable chairs={chairs} availableUsers={availableUsers} />
+      <ServiceTable services={serializedServices} chairs={chairs} />
     </div>
   )
 }
