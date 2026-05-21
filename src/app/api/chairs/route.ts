@@ -11,7 +11,7 @@ export async function GET() {
 
   const chairs = await prisma.chair.findMany({
     where: { businessId: session.user.businessId, isActive: true },
-    select: { id: true, name: true, avatarUrl: true },
+    select: { id: true, name: true, color: true, avatarUrl: true },
     orderBy: { name: "asc" },
   })
 
@@ -22,6 +22,7 @@ const createSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   description: z.string().optional(),
   userId: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 })
 
 export async function POST(request: Request) {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 })
   }
 
-  const { name, description, userId } = parsed.data
+  const { name, description, userId, color } = parsed.data
 
   if (userId) {
     const user = await prisma.user.findFirst({
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       name,
       description: description || null,
       userId: userId || null,
+      color: color ?? "#6366f1",
     },
   })
 

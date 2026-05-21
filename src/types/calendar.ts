@@ -21,6 +21,7 @@ export interface BookingEvent {
   chair: {
     id: string
     name: string
+    color: string
   }
   customer: {
     id: string

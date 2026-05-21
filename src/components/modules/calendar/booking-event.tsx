@@ -20,7 +20,7 @@ export function BookingEvent({ event, onClick }: BookingEventProps) {
   const leftPct = (event.column / event.totalColumns) * 100
   const startTime = new Date(event.startTime)
   const isShort = event.height < 48
-  const textColor = getContrastTextColor(event.service.color)
+  const textColor = getContrastTextColor(event.chair.color)
 
   return (
     <button
@@ -35,7 +35,7 @@ export function BookingEvent({ event, onClick }: BookingEventProps) {
         height: event.height,
         left: `calc(${leftPct}% + 2px)`,
         width: `calc(${widthPct}% - 4px)`,
-        backgroundColor: event.service.color,
+        backgroundColor: event.chair.color,
         color: textColor,
       }}
     >

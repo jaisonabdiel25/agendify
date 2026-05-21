@@ -24,7 +24,7 @@ export default async function DashboardPage() {
       service: {
         select: { id: true, name: true, color: true, durationMinutes: true },
       },
-      chair: { select: { id: true, name: true } },
+      chair: { select: { id: true, name: true, color: true } },
       customer: { select: { id: true, name: true, phone: true } },
     },
     orderBy: { startTime: "asc" },

@@ -22,6 +22,7 @@ const schema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   description: z.string().optional(),
   userId: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -45,7 +46,7 @@ export function CreateChairForm({ users }: CreateChairFormProps) {
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { color: "#6366f1" } })
 
   async function onSubmit(data: FormValues) {
     setServerError(null)
@@ -53,6 +54,7 @@ export function CreateChairForm({ users }: CreateChairFormProps) {
     const payload = {
       ...data,
       userId: data.userId === "none" ? undefined : data.userId,
+      color: data.color,
     }
 
     const response = await fetch("/api/chairs", {
@@ -95,6 +97,21 @@ export function CreateChairForm({ users }: CreateChairFormProps) {
           rows={3}
           {...register("description")}
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="color">Color del puesto</Label>
+        <div className="flex items-center gap-3">
+          <input
+            id="color"
+            type="color"
+            {...register("color")}
+            className="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
+          />
+          <span className="text-sm text-muted-foreground">
+            Identifica el puesto en el calendario
+          </span>
+        </div>
       </div>
 
       <div className="space-y-1.5">
