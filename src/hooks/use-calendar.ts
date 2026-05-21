@@ -109,21 +109,27 @@ interface UseCalendarOptions {
   initialDate: string
   initialBookings: BookingEvent[]
   initialChairs: Chair[]
+  initialShowOnlyMine: boolean
 }
 
-export function useCalendar({ initialView, initialDate, initialBookings, initialChairs }: UseCalendarOptions) {
+export function useCalendar({ initialView, initialDate, initialBookings, initialChairs, initialShowOnlyMine }: UseCalendarOptions) {
   const [view, setView] = useState<CalendarView>(initialView)
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date(initialDate))
   const [bookings, setBookings] = useState<BookingEvent[]>(initialBookings)
   const [chairs] = useState<Chair[]>(initialChairs)
   const [isLoading, startTransition] = useTransition()
-  const [loadedRange, setLoadedRange] = useState(() => getDateRange(new Date(initialDate), initialView))
+  const [showOnlyMine, setShowOnlyMine] = useState(initialShowOnlyMine)
+  const [loadedRange, setLoadedRange] = useState<{ from: Date; to: Date; onlyMine: boolean }>(() => ({
+    ...getDateRange(new Date(initialDate), initialView),
+    onlyMine: initialShowOnlyMine,
+  }))
 
   useEffect(() => {
     const range = getDateRange(currentDate, view)
     const alreadyLoaded =
       range.from.getTime() === loadedRange.from.getTime() &&
-      range.to.getTime() === loadedRange.to.getTime()
+      range.to.getTime() === loadedRange.to.getTime() &&
+      showOnlyMine === loadedRange.onlyMine
 
     if (alreadyLoaded) return
 
@@ -131,14 +137,15 @@ export function useCalendar({ initialView, initialDate, initialBookings, initial
       from: range.from.toISOString(),
       to: range.to.toISOString(),
     })
+    if (showOnlyMine) params.set("onlyMine", "true")
 
     startTransition(async () => {
       const res = await fetch(`/api/bookings?${params}`)
       const data: BookingEvent[] = await res.json()
       setBookings(data)
-      setLoadedRange(range)
+      setLoadedRange({ ...range, onlyMine: showOnlyMine })
     })
-  }, [view, currentDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, currentDate, showOnlyMine]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const goToToday = useCallback(() => setCurrentDate(new Date()), [])
   const goToPrev = useCallback(() => setCurrentDate((d) => navigateDate(d, view, -1)), [view])
@@ -200,6 +207,8 @@ export function useCalendar({ initialView, initialDate, initialBookings, initial
     bookingsForDay,
     bookingsForChair,
     rangeLabel,
+    showOnlyMine,
+    setShowOnlyMine,
     setView,
     goToToday,
     goToPrev,

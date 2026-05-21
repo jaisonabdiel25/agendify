@@ -10,7 +10,7 @@ import {
   isSameDay,
 } from "date-fns"
 import { es } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { cn, getContrastTextColor } from "@/lib/utils"
 import type { BookingEvent } from "@/types/calendar"
 
 const DAY_NAMES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
@@ -76,8 +76,11 @@ export function MonthView({ currentDate, bookings, onDayClick }: MonthViewProps)
                 {dayBookings.slice(0, MAX_VISIBLE).map((b) => (
                   <div
                     key={b.id}
-                    className="rounded px-1 py-0.5 text-white text-[0.6rem] leading-tight truncate"
-                    style={{ backgroundColor: b.service.color }}
+                    className="rounded px-1 py-0.5 text-[0.6rem] leading-tight truncate"
+                    style={{
+                      backgroundColor: b.service.color,
+                      color: getContrastTextColor(b.service.color),
+                    }}
                   >
                     {format(new Date(b.startTime), "HH:mm")} {b.customer.name}
                   </div>

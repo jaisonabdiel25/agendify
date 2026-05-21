@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 const querySchema = z.object({
   from: z.string().datetime(),
   to: z.string().datetime(),
+  onlyMine: z.enum(["true", "false"]).optional(),
 })
 
 export async function GET(request: Request) {
@@ -18,19 +19,21 @@ export async function GET(request: Request) {
   const parsed = querySchema.safeParse({
     from: searchParams.get("from"),
     to: searchParams.get("to"),
+    onlyMine: searchParams.get("onlyMine") ?? undefined,
   })
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Parámetros inválidos" }, { status: 400 })
   }
 
-  const { from, to } = parsed.data
+  const { from, to, onlyMine } = parsed.data
 
   const bookings = await prisma.booking.findMany({
     where: {
       businessId: session.user.businessId,
       startTime: { gte: new Date(from), lte: new Date(to) },
       status: { not: "CANCELLED" },
+      ...(onlyMine === "true" ? { chair: { userId: session.user.id } } : {}),
     },
     include: {
       service: { select: { id: true, name: true, color: true, durationMinutes: true } },

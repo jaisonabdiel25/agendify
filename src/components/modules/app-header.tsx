@@ -39,6 +39,12 @@ export async function AppHeader() {
             </Link>
           )}
           <Link
+            href="/booking"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Reservas
+          </Link>
+          <Link
             href="/schedule"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
