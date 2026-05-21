@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { Loader2, Pencil } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -155,12 +155,12 @@ export function ChairTable({ chairs, availableUsers }: ChairTableProps) {
                   <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(chair.createdAt).toLocaleDateString("es-PA")}
                   </td>
-                  <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-right">
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                     <Link
                       href={`/chair/${chair.id}`}
-                      className="text-xs text-muted-foreground/60 hover:text-foreground underline underline-offset-2 transition-colors whitespace-nowrap"
+                      className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                     >
-                      Editar
+                      <Pencil className="h-3.5 w-3.5" />
                     </Link>
                   </td>
                 </tr>
