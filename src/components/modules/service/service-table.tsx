@@ -105,74 +105,76 @@ export function ServiceTable({ services, chairs }: ServiceTableProps) {
   return (
     <>
       <div className="border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/40">
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground w-8" />
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Nombre</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Duración</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Precio</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Estado</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Puestos</th>
-              <th className="w-10 px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {services.map((service) => (
-              <tr key={service.id} className="hover:bg-muted/20 transition-colors">
-                <td className="px-4 py-3">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: service.color }}
-                  />
-                </td>
-                <td className="px-4 py-3 font-medium">
-                  <div>
-                    <p>{service.name}</p>
-                    {service.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {service.description}
-                      </p>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {service.durationMinutes} min
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  ${Number(service.price).toFixed(2)}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      service.isActive
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {service.isActive ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => openAssignDialog(service)}
-                    className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-                  >
-                    Asignar a puestos
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/service/${service.id}/edit`}
-                    className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Link>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-120">
+            <thead>
+              <tr className="border-b border-border bg-muted/40">
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground w-8" />
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Nombre</th>
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm whitespace-nowrap">Duración</th>
+                <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Precio</th>
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Estado</th>
+                <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Puestos</th>
+                <th className="w-10 px-3 sm:px-4 py-2.5 sm:py-3" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {services.map((service) => (
+                <tr key={service.id} className="hover:bg-muted/20 transition-colors duration-100">
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    <div
+                      className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full"
+                      style={{ backgroundColor: service.color }}
+                    />
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium">
+                    <div>
+                      <p className="text-xs sm:text-sm">{service.name}</p>
+                      {service.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 hidden sm:block">
+                          {service.description}
+                        </p>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                    {service.durationMinutes} min
+                  </td>
+                  <td className="hidden sm:table-cell px-4 py-3 text-sm text-muted-foreground">
+                    ${Number(service.price).toFixed(2)}
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium whitespace-nowrap ${
+                        service.isActive
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {service.isActive ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td className="hidden md:table-cell px-4 py-3">
+                    <button
+                      onClick={() => openAssignDialog(service)}
+                      className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors whitespace-nowrap"
+                    >
+                      Asignar a puestos
+                    </button>
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    <Link
+                      href={`/service/${service.id}/edit`}
+                      className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Assign Dialog */}

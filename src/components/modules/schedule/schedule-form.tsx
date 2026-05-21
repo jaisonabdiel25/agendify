@@ -113,44 +113,46 @@ export function ScheduleForm({ chair }: { chair: ChairData }) {
       {days.map((day) => (
         <div
           key={day.dayOfWeek}
-          className={`flex items-center gap-4 rounded-xl border p-4 transition-colors ${
+          className={`rounded-xl border p-3 sm:p-4 transition-colors ${
             day.isActive ? "border-border bg-card" : "border-border/50 bg-muted/20"
           }`}
         >
-          {/* Day name */}
-          <span
-            className={`w-24 text-sm font-medium shrink-0 ${
-              day.isActive ? "text-foreground" : "text-muted-foreground"
-            }`}
-          >
-            {DAY_LABELS[day.dayOfWeek]}
-          </span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4">
+            {/* Row 1: day name + toggle + status */}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <span
+                className={`w-22 sm:w-24 text-sm font-medium shrink-0 ${
+                  day.isActive ? "text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                {DAY_LABELS[day.dayOfWeek]}
+              </span>
 
-          {/* Toggle */}
-          <Toggle active={day.isActive} onChange={() => toggleDay(day.dayOfWeek)} />
+              <Toggle active={day.isActive} onChange={() => toggleDay(day.dayOfWeek)} />
 
-          {/* Status label */}
-          <span className={`text-xs w-14 shrink-0 ${day.isActive ? "text-foreground" : "text-muted-foreground"}`}>
-            {day.isActive ? "Abierto" : "Cerrado"}
-          </span>
+              <span className={`text-xs w-14 shrink-0 ${day.isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                {day.isActive ? "Abierto" : "Cerrado"}
+              </span>
+            </div>
 
-          {/* Time inputs */}
-          <div className={`flex items-center gap-2 flex-1 transition-opacity ${day.isActive ? "opacity-100" : "opacity-30 pointer-events-none"}`}>
-            <Input
-              type="time"
-              value={day.openTime}
-              onChange={(e) => updateTime(day.dayOfWeek, "openTime", e.target.value)}
-              className="h-8 text-sm w-28"
-              disabled={!day.isActive}
-            />
-            <span className="text-muted-foreground text-xs shrink-0">hasta</span>
-            <Input
-              type="time"
-              value={day.closeTime}
-              onChange={(e) => updateTime(day.dayOfWeek, "closeTime", e.target.value)}
-              className="h-8 text-sm w-28"
-              disabled={!day.isActive}
-            />
+            {/* Row 2 (mobile) / inline (sm+): time inputs */}
+            <div className={`flex items-center gap-2 sm:flex-1 transition-opacity ${day.isActive ? "opacity-100" : "opacity-30 pointer-events-none"}`}>
+              <Input
+                type="time"
+                value={day.openTime}
+                onChange={(e) => updateTime(day.dayOfWeek, "openTime", e.target.value)}
+                className="h-8 text-sm flex-1 sm:flex-none sm:w-34"
+                disabled={!day.isActive}
+              />
+              <span className="text-muted-foreground text-xs shrink-0">–</span>
+              <Input
+                type="time"
+                value={day.closeTime}
+                onChange={(e) => updateTime(day.dayOfWeek, "closeTime", e.target.value)}
+                className="h-8 text-sm flex-1 sm:flex-none sm:w-34"
+                disabled={!day.isActive}
+              />
+            </div>
           </div>
         </div>
       ))}

@@ -84,18 +84,18 @@ function StepHeader({ step, onBack }: { step: number; onBack: () => void }) {
           Atrás
         </button>
       )}
-      <div className="flex gap-1.5 mb-4">
+      <div className="flex gap-1 mb-3">
         {STEPS.map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-full transition-colors ${
-              i < step ? "bg-foreground" : "bg-muted"
+            className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
+              i < step ? "bg-foreground" : "bg-border"
             }`}
           />
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Paso {step} de {STEPS.length} — {STEPS[step - 1]}
+      <p className="text-[0.65rem] tracking-wider uppercase text-muted-foreground font-medium">
+        {step} / {STEPS.length} — {STEPS[step - 1]}
       </p>
     </div>
   )
@@ -115,18 +115,19 @@ function SelectionCard({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-xl border border-border bg-card hover:border-foreground/30 hover:bg-muted/40 transition-all p-4 group"
+      className="w-full text-left rounded-xl border border-border bg-card hover:border-foreground/25 hover:bg-muted/30 active:scale-[0.99] transition-all duration-150 p-4 group"
     >
       <div className="flex items-center gap-3">
         {accent && (
-          <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: accent }} />
+          <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: accent }} />
         )}
-        <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{title}</p>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-sm">{title}</p>
           {subtitle && (
             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{subtitle}</p>
           )}
         </div>
+        <ChevronLeft className="h-3.5 w-3.5 text-muted-foreground rotate-180 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </button>
   )
@@ -250,28 +251,38 @@ export function BookingWizard() {
   // ── Step 6: Success ──────────────────────────────────────────────────────────
   if (step === 6) {
     return (
-      <div className="w-full max-w-md text-center space-y-4">
-        <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
-        <h1 className="font-display font-light text-3xl">¡Reserva confirmada!</h1>
-        <p className="text-sm text-muted-foreground">
-          Tu reserva en <strong>{business?.name}</strong> con <strong>{chair?.name}</strong> para{" "}
-          <strong>{service?.name}</strong> el{" "}
-          <strong>{date ? formatDate(date) : ""}</strong> a las{" "}
-          <strong>{time ? formatTime(time) : ""}</strong> ha sido recibida.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Referencia: <span className="font-mono">{confirmedBookingId}</span>
-        </p>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setBusiness(null); setChair(null); setService(null)
-            setDate(""); setTime(""); setConfirmedBookingId(null)
-            setStep(1)
-          }}
-        >
-          Hacer otra reserva
-        </Button>
+      <div className="w-full max-w-md text-center space-y-5">
+        <div className="flex justify-center">
+          <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
+            <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-display font-light text-3xl sm:text-4xl">¡Reserva confirmada!</h1>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            Tu reserva en <strong className="text-foreground">{business?.name}</strong> con{" "}
+            <strong className="text-foreground">{chair?.name}</strong> para{" "}
+            <strong className="text-foreground">{service?.name}</strong> el{" "}
+            <strong className="text-foreground">{date ? formatDate(date) : ""}</strong> a las{" "}
+            <strong className="text-foreground">{time ? formatTime(time) : ""}</strong> ha sido recibida.
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 inline-block">
+          <p className="text-xs text-muted-foreground mb-0.5">Referencia</p>
+          <p className="font-mono text-sm font-medium tracking-wide">{confirmedBookingId}</p>
+        </div>
+        <div className="pt-1">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setBusiness(null); setChair(null); setService(null)
+              setDate(""); setTime(""); setConfirmedBookingId(null)
+              setStep(1)
+            }}
+          >
+            Hacer otra reserva
+          </Button>
+        </div>
       </div>
     )
   }
@@ -386,7 +397,7 @@ export function BookingWizard() {
                     No hay horarios disponibles para este día.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {slots.map((slot) => (
                       <button
                         key={slot}

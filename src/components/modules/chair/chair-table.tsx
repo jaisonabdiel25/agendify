@@ -97,55 +97,59 @@ export function ChairTable({ chairs, availableUsers }: ChairTableProps) {
   return (
     <>
       <div className="border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/40">
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Nombre</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Usuario asignado</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Descripción</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Estado</th>
-              <th className="text-left px-4 py-3 font-medium text-muted-foreground">Creado</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {chairs.map((chair) => (
-              <tr key={chair.id} className="hover:bg-muted/20 transition-colors">
-                <td className="px-4 py-3 font-medium">{chair.name}</td>
-                <td className="px-4 py-3">
-                  {chair.user ? (
-                    <span className="text-muted-foreground">{chair.user.name}</span>
-                  ) : (
-                    <button
-                      onClick={() => openDialog(chair)}
-                      className="text-xs text-muted-foreground/60 hover:text-foreground underline underline-offset-2 transition-colors italic"
-                    >
-                      Sin asignar — Asignar usuario
-                    </button>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {chair.description ?? (
-                    <span className="italic text-muted-foreground/50">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      chair.isActive
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {chair.isActive ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-xs text-muted-foreground">
-                  {new Date(chair.createdAt).toLocaleDateString("es-PA")}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-120">
+            <thead>
+              <tr className="border-b border-border bg-muted/40">
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Nombre</th>
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Usuario asignado</th>
+                <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Descripción</th>
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Estado</th>
+                <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Creado</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {chairs.map((chair) => (
+                <tr key={chair.id} className="hover:bg-muted/20 transition-colors duration-100">
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-xs sm:text-sm">{chair.name}</td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    {chair.user ? (
+                      <span className="text-xs sm:text-sm text-muted-foreground">{chair.user.name}</span>
+                    ) : (
+                      <button
+                        onClick={() => openDialog(chair)}
+                        className="text-xs text-muted-foreground/60 hover:text-foreground underline underline-offset-2 transition-colors italic whitespace-nowrap"
+                      >
+                        Sin asignar — Asignar
+                      </button>
+                    )}
+                  </td>
+                  <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground max-w-50">
+                    {chair.description ? (
+                      <span className="line-clamp-1">{chair.description}</span>
+                    ) : (
+                      <span className="italic text-muted-foreground/50">—</span>
+                    )}
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium whitespace-nowrap ${
+                        chair.isActive
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {chair.isActive ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                    {new Date(chair.createdAt).toLocaleDateString("es-PA")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <Dialog open={!!targetChair} onOpenChange={(open) => !open && closeDialog()}>
