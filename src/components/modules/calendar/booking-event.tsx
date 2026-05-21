@@ -1,5 +1,5 @@
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
+import { cn, getContrastTextColor } from "@/lib/utils"
 import type { PositionedEvent } from "@/types/calendar"
 
 interface BookingEventProps {
@@ -20,13 +20,14 @@ export function BookingEvent({ event, onClick }: BookingEventProps) {
   const leftPct = (event.column / event.totalColumns) * 100
   const startTime = new Date(event.startTime)
   const isShort = event.height < 48
+  const textColor = getContrastTextColor(event.service.color)
 
   return (
     <button
       onClick={() => onClick(event)}
       className={cn(
-        "absolute rounded-md px-2 py-1 text-left overflow-hidden border border-white/20",
-        "hover:brightness-110 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-white/50",
+        "absolute rounded-md px-2 py-1 text-left overflow-hidden border border-black/10",
+        "hover:brightness-110 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-black/20",
         STATUS_STYLES[event.status]
       )}
       style={{
@@ -35,18 +36,19 @@ export function BookingEvent({ event, onClick }: BookingEventProps) {
         left: `calc(${leftPct}% + 2px)`,
         width: `calc(${widthPct}% - 4px)`,
         backgroundColor: event.service.color,
+        color: textColor,
       }}
     >
-      <p className="text-white text-xs font-semibold leading-tight truncate">
+      <p className="text-xs font-semibold leading-tight truncate">
         {event.customer.name}
       </p>
       {!isShort && (
-        <p className="text-white/80 text-[0.65rem] leading-tight truncate mt-0.5">
+        <p className="text-[0.65rem] leading-tight truncate mt-0.5" style={{ opacity: 0.8 }}>
           {event.service.name} · {format(startTime, "HH:mm")}
         </p>
       )}
       {!isShort && event.chair && (
-        <p className="text-white/60 text-[0.6rem] leading-tight truncate">
+        <p className="text-[0.6rem] leading-tight truncate" style={{ opacity: 0.65 }}>
           {event.chair.name}
         </p>
       )}

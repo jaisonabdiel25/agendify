@@ -42,9 +42,11 @@ interface CalendarViewProps {
   initialDate: string
   initialView: CalendarViewType
   initialChairs: Chair[]
+  initialShowOnlyMine: boolean
+  canToggle: boolean
 }
 
-export function CalendarView({ initialBookings, initialDate, initialView, initialChairs }: CalendarViewProps) {
+export function CalendarView({ initialBookings, initialDate, initialView, initialChairs, initialShowOnlyMine, canToggle }: CalendarViewProps) {
   const {
     view,
     currentDate,
@@ -56,12 +58,14 @@ export function CalendarView({ initialBookings, initialDate, initialView, initia
     bookingsForDay,
     bookingsForChair,
     rangeLabel,
+    showOnlyMine,
+    setShowOnlyMine,
     setView,
     goToToday,
     goToPrev,
     goToNext,
     goToDate,
-  } = useCalendar({ initialView, initialDate, initialBookings, initialChairs })
+  } = useCalendar({ initialView, initialDate, initialBookings, initialChairs, initialShowOnlyMine })
 
   const [selectedEvent, setSelectedEvent] = useState<PositionedEvent | null>(null)
 
@@ -76,10 +80,13 @@ export function CalendarView({ initialBookings, initialDate, initialView, initia
         view={view}
         rangeLabel={rangeLabel}
         isLoading={isLoading}
+        showOnlyMine={showOnlyMine}
+        canToggle={canToggle}
         onViewChange={setView}
         onPrev={goToPrev}
         onNext={goToNext}
         onToday={goToToday}
+        onToggleOnlyMine={() => setShowOnlyMine((v) => !v)}
       />
 
       {view === "chairs" && (
