@@ -56,12 +56,12 @@ export function BookingsTable({ bookings, myChairIds, role }: BookingsTableProps
       : bookings
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {isOwnerOrAdmin && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           <button
             onClick={() => setFilter("all")}
-            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium transition-colors ${
               filter === "all"
                 ? "bg-foreground text-background"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -71,7 +71,7 @@ export function BookingsTable({ bookings, myChairIds, role }: BookingsTableProps
           </button>
           <button
             onClick={() => setFilter("mine")}
-            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            className={`inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-medium transition-colors ${
               filter === "mine"
                 ? "bg-foreground text-background"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -93,69 +93,69 @@ export function BookingsTable({ bookings, myChairIds, role }: BookingsTableProps
       ) : (
         <div className="border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-125">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground whitespace-nowrap text-xs sm:text-sm">
                     Fecha
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">
                     Cliente
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">
                     Servicio
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">
                     Puesto
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                  <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">
                     Estado
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap text-sm">
                     Duración
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                  <th className="hidden lg:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">
                     Notas
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {displayed.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                      {format(new Date(booking.startTime), "dd/MM/yyyy HH:mm", { locale: es })}
+                  <tr key={booking.id} className="hover:bg-muted/20 transition-colors duration-100">
+                    <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-muted-foreground">
+                      {format(new Date(booking.startTime), "dd/MM/yy HH:mm", { locale: es })}
                     </td>
-                    <td className="px-4 py-3">
-                      <p className="font-medium">{booking.customer.name}</p>
+                    <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                      <p className="font-medium text-xs sm:text-sm">{booking.customer.name}</p>
                       {booking.customer.phone && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
                           {booking.customer.phone}
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         <div
-                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: booking.service.color }}
                         />
-                        <span>{booking.service.name}</span>
+                        <span className="text-xs sm:text-sm truncate max-w-25 sm:max-w-none">{booking.service.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="hidden sm:table-cell px-4 py-3 text-sm text-muted-foreground">
                       {booking.chair.name}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[booking.status]}`}
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium whitespace-nowrap ${STATUS_BADGE[booking.status]}`}
                       >
                         {STATUS_LABEL[booking.status]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                    <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                       {booking.service.durationMinutes} min
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-[200px]">
+                    <td className="hidden lg:table-cell px-4 py-3 text-muted-foreground max-w-50">
                       {booking.notes ? (
                         <span className="line-clamp-1 text-xs">{booking.notes}</span>
                       ) : (

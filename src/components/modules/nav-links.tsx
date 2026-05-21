@@ -14,12 +14,12 @@ export function NavLinks({ canManage }: NavLinksProps) {
   function linkClass(href: string) {
     const isActive = pathname === href || pathname.startsWith(href + "/")
     return isActive
-      ? "text-sm text-foreground font-medium transition-colors"
-      : "text-sm text-muted-foreground hover:text-foreground transition-colors"
+      ? "text-sm text-foreground font-medium transition-colors duration-150 relative after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-px after:bg-foreground"
+      : "text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
   }
 
   return (
-    <nav className="flex items-center gap-5">
+    <nav className="flex items-center gap-4 sm:gap-5 overflow-x-auto scrollbar-none">
       <Link href="/booking" className={linkClass("/booking")}>
         Reservas
       </Link>

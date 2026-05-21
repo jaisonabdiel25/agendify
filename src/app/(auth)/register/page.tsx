@@ -33,8 +33,8 @@ export default function RegisterPage() {
 
       {/* Right panel — form */}
       <div className="flex flex-col min-h-screen lg:min-h-0 border-l border-border">
-        <div className="flex items-center justify-between px-8 py-5 lg:px-10">
-          <Link href="/" className="font-bold text-base tracking-tight lg:hidden">
+        <div className="flex items-center justify-between px-6 py-4 lg:px-10 lg:py-5">
+          <Link href="/" className="font-bold text-base tracking-tight hover:opacity-80 transition-opacity lg:hidden">
             Agendify
           </Link>
           <div className="lg:ml-auto">
@@ -42,24 +42,24 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-8 py-12 lg:px-12">
+        <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-8 sm:py-12 lg:px-12">
           <div className="w-full max-w-sm">
-            <div className="mb-10">
-              <h1 className="font-display font-light text-4xl leading-[1.05]">
+            <div className="mb-8 sm:mb-10">
+              <h1 className="font-display font-light text-3xl sm:text-4xl leading-[1.05]">
                 Crea tu<br />cuenta.
               </h1>
-              <p className="text-sm text-muted-foreground mt-3">
+              <p className="text-sm text-muted-foreground mt-2.5">
                 Usa tu código de invitación para crear tu cuenta
               </p>
             </div>
 
             <RegisterForm />
 
-            <p className="text-sm text-muted-foreground mt-8">
+            <p className="text-sm text-muted-foreground mt-7">
               ¿Ya tienes cuenta?{" "}
               <Link
                 href="/login"
-                className="text-foreground underline underline-offset-4 hover:opacity-70 transition-opacity"
+                className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
               >
                 Inicia sesión
               </Link>
