@@ -27,6 +27,12 @@ export function LandingHeader() {
           >
             Características
           </a>
+          <Link
+            href="/reserve"
+            className="hover:text-foreground transition-colors duration-150"
+          >
+            Reservar cita
+          </Link>
         </nav>
 
         <div className="flex items-center gap-1">
@@ -64,6 +70,13 @@ export function LandingHeader() {
             >
               Características
             </a>
+            <Link
+              href="/reserve"
+              onClick={() => setMobileOpen(false)}
+              className="px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              Reservar cita
+            </Link>
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}

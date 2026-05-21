@@ -3,8 +3,43 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user?.businessId) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  const chair = await prisma.chair.findFirst({
+    where: { id, businessId: session.user.businessId },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      color: true,
+      isActive: true,
+      userId: true,
+      user: { select: { id: true, name: true, email: true } },
+    },
+  })
+
+  if (!chair) {
+    return NextResponse.json({ error: "Puesto no encontrado" }, { status: 404 })
+  }
+
+  return NextResponse.json(chair)
+}
+
 const patchSchema = z.object({
-  userId: z.string().min(1).nullable(),
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").optional(),
+  description: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  isActive: z.boolean().optional(),
+  userId: z.string().min(1).nullable().optional(),
 })
 
 export async function PATCH(
@@ -34,9 +69,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Puesto no encontrado" }, { status: 404 })
   }
 
-  if (parsed.data.userId !== null) {
+  const { userId, ...rest } = parsed.data
+
+  if (userId !== undefined && userId !== null) {
     const user = await prisma.user.findFirst({
-      where: { id: parsed.data.userId, businessId: session.user.businessId },
+      where: { id: userId, businessId: session.user.businessId },
       select: { id: true },
     })
     if (!user) {
@@ -44,10 +81,13 @@ export async function PATCH(
     }
   }
 
+  const data: Record<string, unknown> = { ...rest }
+  if (userId !== undefined) data.userId = userId
+
   const updated = await prisma.chair.update({
     where: { id },
-    data: { userId: parsed.data.userId },
-    select: { id: true, userId: true },
+    data,
+    select: { id: true, name: true, description: true, color: true, isActive: true, userId: true },
   })
 
   return NextResponse.json(updated)

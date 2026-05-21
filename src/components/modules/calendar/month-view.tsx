@@ -78,8 +78,8 @@ export function MonthView({ currentDate, bookings, onDayClick }: MonthViewProps)
                     key={b.id}
                     className="rounded px-1 py-0.5 text-[0.6rem] leading-tight truncate"
                     style={{
-                      backgroundColor: b.service.color,
-                      color: getContrastTextColor(b.service.color),
+                      backgroundColor: b.chair.color,
+                      color: getContrastTextColor(b.chair.color),
                     }}
                   >
                     {format(new Date(b.startTime), "HH:mm")} {b.customer.name}

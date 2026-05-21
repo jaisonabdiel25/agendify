@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -32,6 +33,7 @@ interface Chair {
   id: string
   name: string
   description: string | null
+  color: string
   isActive: boolean
   createdAt: Date
   user: ChairUser | null
@@ -101,16 +103,24 @@ export function ChairTable({ chairs, availableUsers }: ChairTableProps) {
           <table className="w-full text-sm min-w-120">
             <thead>
               <tr className="border-b border-border bg-muted/40">
+                <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground w-8" />
                 <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Nombre</th>
                 <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Usuario asignado</th>
                 <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Descripción</th>
                 <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Estado</th>
                 <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Creado</th>
+                <th className="px-3 sm:px-4 py-2.5 sm:py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {chairs.map((chair) => (
                 <tr key={chair.id} className="hover:bg-muted/20 transition-colors duration-100">
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                    <div
+                      className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full"
+                      style={{ backgroundColor: chair.color }}
+                    />
+                  </td>
                   <td className="px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-xs sm:text-sm">{chair.name}</td>
                   <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                     {chair.user ? (
@@ -144,6 +154,14 @@ export function ChairTable({ chairs, availableUsers }: ChairTableProps) {
                   </td>
                   <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {new Date(chair.createdAt).toLocaleDateString("es-PA")}
+                  </td>
+                  <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-right">
+                    <Link
+                      href={`/chair/${chair.id}`}
+                      className="text-xs text-muted-foreground/60 hover:text-foreground underline underline-offset-2 transition-colors whitespace-nowrap"
+                    >
+                      Editar
+                    </Link>
                   </td>
                 </tr>
               ))}

@@ -60,6 +60,14 @@ export default function HomePage() {
             <Link href="/login">Iniciar sesión</Link>
           </Button>
         </div>
+        <div className="animate-fade-up [animation-delay:360ms] mt-4">
+          <Link
+            href="/reserve"
+            className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors duration-150"
+          >
+            ¿Solo quieres reservar una cita? →
+          </Link>
+        </div>
       </section>
 
       {/* Features */}
