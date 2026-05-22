@@ -147,6 +147,10 @@ export function useCalendar({ initialView, initialDate, initialBookings, initial
     })
   }, [view, currentDate, showOnlyMine]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const updateBooking = useCallback((id: string, updates: Partial<BookingEvent>) => {
+    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, ...updates } : b)))
+  }, [])
+
   const goToToday = useCallback(() => setCurrentDate(new Date()), [])
   const goToPrev = useCallback(() => setCurrentDate((d) => navigateDate(d, view, -1)), [view])
   const goToNext = useCallback(() => setCurrentDate((d) => navigateDate(d, view, 1)), [view])
@@ -214,6 +218,7 @@ export function useCalendar({ initialView, initialDate, initialBookings, initial
     goToPrev,
     goToNext,
     goToDate,
+    updateBooking,
     GRID_START_HOUR,
     GRID_END_HOUR,
     SLOT_HEIGHT_PX,
