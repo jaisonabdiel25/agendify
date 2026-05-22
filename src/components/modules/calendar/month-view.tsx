@@ -9,7 +9,6 @@ import {
   isSameMonth,
   isSameDay,
 } from "date-fns"
-import { es } from "date-fns/locale"
 import { cn, getContrastTextColor } from "@/lib/utils"
 import type { BookingEvent } from "@/types/calendar"
 

@@ -211,7 +211,6 @@ export function BookingWizard() {
     if (!chair || !service || !date) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSlots([])
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     fetch(`/api/public/availability?chairId=${chair.id}&serviceId=${service.id}&date=${date}`)
       .then((r) => r.json())

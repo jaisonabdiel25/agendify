@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, useWatch, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Loader2 } from "lucide-react"
@@ -61,7 +61,6 @@ export function CreateServiceForm() {
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -71,7 +70,7 @@ export function CreateServiceForm() {
     },
   })
 
-  const colorValue = watch("color")
+  const colorValue = useWatch({ control, name: "color" })
 
   async function onSubmit(data: FormValues) {
     setServerError(null)
