@@ -146,6 +146,7 @@ model Booking {
   endTime    DateTime
   status     BookingStatus @default(PENDING)
   notes      String?
+  paidAmount Decimal?      @db.Decimal(10, 2)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 

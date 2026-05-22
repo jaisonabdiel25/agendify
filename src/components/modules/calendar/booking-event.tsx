@@ -15,6 +15,14 @@ const STATUS_STYLES: Record<PositionedEvent["status"], string> = {
   NO_SHOW: "opacity-40",
 }
 
+const STATUS_DOT: Record<PositionedEvent["status"], string> = {
+  PENDING:   "bg-orange-400",
+  CONFIRMED: "bg-sky-400",
+  COMPLETED: "bg-emerald-400",
+  CANCELLED: "bg-red-400",
+  NO_SHOW:   "bg-rose-700",
+}
+
 export function BookingEvent({ event, onClick }: BookingEventProps) {
   const widthPct = 100 / event.totalColumns
   const leftPct = (event.column / event.totalColumns) * 100
@@ -39,7 +47,13 @@ export function BookingEvent({ event, onClick }: BookingEventProps) {
         color: textColor,
       }}
     >
-      <p className="text-xs font-semibold leading-tight truncate">
+      <span
+        className={cn(
+          "absolute top-1 right-1 h-2 w-2 rounded-full ring-1 ring-black/20",
+          STATUS_DOT[event.status]
+        )}
+      />
+      <p className="text-xs font-semibold leading-tight truncate pr-3">
         {event.customer.name}
       </p>
       {!isShort && (

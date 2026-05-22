@@ -22,9 +22,14 @@ export default async function DashboardPage() {
     },
     include: {
       service: {
-        select: { id: true, name: true, color: true, durationMinutes: true },
+        select: { id: true, name: true, color: true, durationMinutes: true, price: true },
       },
-      chair: { select: { id: true, name: true, color: true } },
+      chair: {
+        select: {
+          id: true, name: true, color: true,
+          user: { select: { id: true, name: true } },
+        },
+      },
       customer: { select: { id: true, name: true, phone: true } },
     },
     orderBy: { startTime: "asc" },
@@ -42,7 +47,8 @@ export default async function DashboardPage() {
     endTime: b.endTime.toISOString(),
     status: b.status,
     notes: b.notes,
-    service: b.service,
+    paidAmount: b.paidAmount?.toString() ?? null,
+    service: { ...b.service, price: b.service.price.toString() },
     chair: b.chair,
     customer: b.customer,
   }));
