@@ -23,11 +23,11 @@ import {
 } from "date-fns"
 import type { BookingEvent, CalendarView, Chair, PositionedEvent } from "@/types/calendar"
 
-const GRID_START_HOUR = 8
-const GRID_END_HOUR = 22
-const SLOT_HEIGHT_PX = 64
+export const GRID_START_HOUR = 8
+export const GRID_END_HOUR = 22
+export const SLOT_HEIGHT_PX = 64
 
-function getDateRange(date: Date, view: CalendarView): { from: Date; to: Date } {
+export function getDateRange(date: Date, view: CalendarView): { from: Date; to: Date } {
   switch (view) {
     case "week":
       return {
@@ -42,7 +42,7 @@ function getDateRange(date: Date, view: CalendarView): { from: Date; to: Date } 
   }
 }
 
-function navigateDate(date: Date, view: CalendarView, direction: 1 | -1): Date {
+export function navigateDate(date: Date, view: CalendarView, direction: 1 | -1): Date {
   switch (view) {
     case "week":
       return direction === 1 ? addWeeks(date, 1) : subWeeks(date, 1)
@@ -54,7 +54,7 @@ function navigateDate(date: Date, view: CalendarView, direction: 1 | -1): Date {
   }
 }
 
-function getEventPosition(event: BookingEvent): { top: number; height: number } {
+export function getEventPosition(event: BookingEvent): { top: number; height: number } {
   const start = new Date(event.startTime)
   const end = new Date(event.endTime)
   const startMinutes = (getHours(start) - GRID_START_HOUR) * 60 + getMinutes(start)
@@ -65,7 +65,7 @@ function getEventPosition(event: BookingEvent): { top: number; height: number } 
   }
 }
 
-function resolveOverlaps(events: BookingEvent[]): PositionedEvent[] {
+export function resolveOverlaps(events: BookingEvent[]): PositionedEvent[] {
   const sorted = [...events].sort(
     (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
   )
@@ -95,7 +95,7 @@ function resolveOverlaps(events: BookingEvent[]): PositionedEvent[] {
   return positioned
 }
 
-function buildTimeSlots(): string[] {
+export function buildTimeSlots(): string[] {
   const slots: string[] = []
   for (let h = GRID_START_HOUR; h < GRID_END_HOUR; h++) {
     slots.push(`${String(h).padStart(2, "0")}:00`)
