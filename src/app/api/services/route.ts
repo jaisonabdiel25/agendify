@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   const parsed = createSchema.safeParse(body)
   if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Datos inválidos"
+    const message = parsed.error.issues[0]?.message ?? /* istanbul ignore next */ "Datos inválidos"
     return NextResponse.json({ error: message }, { status: 400 })
   }
 

@@ -3,12 +3,8 @@ import Credentials from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import { UserRole } from "@prisma/client"
 import bcrypt from "bcryptjs"
-import { z } from "zod"
-
-const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-})
+import { credentialsSchema } from "@/lib/auth-schema"
+import { getAuthorizedResponse } from "@/lib/auth-logic"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -62,29 +58,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
     authorized({ auth: session, request }) {
-      const isAuthenticated = !!session?.user
-      const pathname = request.nextUrl.pathname
-
-      const publicPaths = ["/", "/login", "/register"]
-      const publicPrefixes = ["/reserve", "/api/public"]
-      const isPublicPath =
-        publicPaths.includes(pathname) ||
-        publicPrefixes.some((p) => pathname.startsWith(p))
-
-      if (isAuthenticated && pathname === "/login") {
-        const dest = session.user.role === "ADMIN" ? "/admin" : "/dashboard"
-        return Response.redirect(new URL(dest, request.nextUrl))
-      }
-
-      if (pathname.startsWith("/admin")) {
-        if (!isAuthenticated) return Response.redirect(new URL("/login", request.nextUrl))
-        if (session.user.role !== "ADMIN") return Response.redirect(new URL("/login", request.nextUrl))
-        return true
-      }
-
-      if (isPublicPath) return true
-
-      return isAuthenticated
+      return getAuthorizedResponse({
+        isAuthenticated: !!session?.user,
+        role: session?.user?.role,
+        pathname: request.nextUrl.pathname,
+        baseUrl: request.nextUrl,
+      })
     },
   },
   pages: {
