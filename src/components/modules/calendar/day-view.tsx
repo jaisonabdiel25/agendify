@@ -1,12 +1,16 @@
+"use client"
+
+import { useEffect, useRef } from "react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { BookingEvent } from "./booking-event"
 import type { PositionedEvent } from "@/types/calendar"
 
-const GRID_START_HOUR = 8
-const GRID_END_HOUR = 22
+const GRID_START_HOUR = 0
+const GRID_END_HOUR = 24
 const SLOT_HEIGHT_PX = 64
 const TOTAL_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * 2 * SLOT_HEIGHT_PX
+const SCROLL_TO_HOUR = 8
 
 interface DayViewProps {
   currentDate: Date
@@ -17,6 +21,13 @@ interface DayViewProps {
 
 export function DayView({ currentDate, timeSlots, bookingsForDay, onEventClick }: DayViewProps) {
   const dayBookings = bookingsForDay(currentDate)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = SCROLL_TO_HOUR * 2 * SLOT_HEIGHT_PX
+    }
+  }, [])
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -32,7 +43,7 @@ export function DayView({ currentDate, timeSlots, bookingsForDay, onEventClick }
       </div>
 
       {/* Grid con scroll */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ scrollbarGutter: "stable" }}>
         <div className="flex">
           {/* Columna de horas */}
           <div className="w-16 shrink-0 border-r border-border">

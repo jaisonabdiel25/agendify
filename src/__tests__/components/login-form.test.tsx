@@ -1,0 +1,142 @@
+/**
+ * @jest-environment jsdom
+ */
+
+jest.mock("next/navigation", () => ({ useRouter: jest.fn() }))
+jest.mock("next-auth/react", () => ({
+  signIn: jest.fn(),
+  getSession: jest.fn(),
+}))
+
+import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { LoginForm } from "@/components/login-form"
+import { signIn, getSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+
+const signInMock = signIn as jest.Mock
+const getSessionMock = getSession as jest.Mock
+const routerMock = useRouter as jest.Mock
+const mockPush = jest.fn()
+const mockRefresh = jest.fn()
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  routerMock.mockReturnValue({ push: mockPush, refresh: mockRefresh })
+  signInMock.mockResolvedValue({ error: null, code: null })
+  getSessionMock.mockResolvedValue({ user: { role: "STAFF" } })
+})
+
+describe("LoginForm — renderizado", () => {
+  it("muestra el campo de correo electrónico", () => {
+    render(<LoginForm />)
+    expect(screen.getByLabelText("Correo electrónico")).toBeInTheDocument()
+  })
+
+  it("muestra el campo de contraseña", () => {
+    render(<LoginForm />)
+    expect(screen.getByLabelText("Contraseña")).toBeInTheDocument()
+  })
+
+  it("muestra el botón de iniciar sesión", () => {
+    render(<LoginForm />)
+    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeInTheDocument()
+  })
+
+  it("el campo de contraseña es de tipo password por defecto", () => {
+    render(<LoginForm />)
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password")
+  })
+})
+
+describe("LoginForm — toggle de contraseña", () => {
+  it("muestra la contraseña al hacer clic en el botón mostrar", async () => {
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.click(screen.getByLabelText("Mostrar contraseña"))
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "text")
+  })
+
+  it("oculta la contraseña al hacer clic de nuevo", async () => {
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.click(screen.getByLabelText("Mostrar contraseña"))
+    await user.click(screen.getByLabelText("Ocultar contraseña"))
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password")
+  })
+})
+
+describe("LoginForm — validación del formulario", () => {
+  it("no llama a signIn cuando el email tiene formato inválido", async () => {
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByPlaceholderText("tu@empresa.com"), "no-email")
+    await user.type(screen.getByPlaceholderText("••••••••"), "pass123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(signInMock).not.toHaveBeenCalled()
+    })
+  })
+
+  it("no llama a signIn cuando la contraseña está vacía", async () => {
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByPlaceholderText("tu@empresa.com"), "user@test.com")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(signInMock).not.toHaveBeenCalled()
+    })
+  })
+})
+
+describe("LoginForm — manejo de respuestas del servidor", () => {
+  it("muestra error de negocio inactivo cuando code es inactive_business", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_business" })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByText(/negocio no está activo/i)).toBeInTheDocument()
+    })
+  })
+
+  it("muestra error de credenciales incorrectas cuando signIn retorna error genérico", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: null })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "wrongpassword")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByText(/Credenciales incorrectas/i)).toBeInTheDocument()
+    })
+  })
+
+  it("redirige a /dashboard al iniciar sesión como STAFF", async () => {
+    signInMock.mockResolvedValue({ error: null, code: null })
+    getSessionMock.mockResolvedValue({ user: { role: "STAFF" } })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/dashboard")
+    })
+  })
+
+  it("redirige a /admin al iniciar sesión como ADMIN", async () => {
+    signInMock.mockResolvedValue({ error: null, code: null })
+    getSessionMock.mockResolvedValue({ user: { role: "ADMIN" } })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "admin@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "adminpass123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/admin")
+    })
+  })
+})

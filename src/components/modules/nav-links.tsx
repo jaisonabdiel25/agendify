@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { CalendarDays, BookOpen, Clock4, BarChart2 } from "lucide-react"
 import { NavManageDropdown } from "./nav-manage-dropdown"
 
 interface NavLinksProps {
@@ -20,12 +21,27 @@ export function NavLinks({ canManage }: NavLinksProps) {
 
   return (
     <nav className="flex items-center gap-4 sm:gap-5 overflow-x-auto scrollbar-none">
-      <Link href="/booking" className={linkClass("/booking")}>
+      <Link
+        href="/dashboard"
+        className={`${linkClass("/dashboard")} flex items-center gap-1.5`}
+      >
+        <CalendarDays className="h-4 w-4" />
+        Calendario
+      </Link>
+      <Link href="/booking" className={`${linkClass("/booking")} flex items-center gap-1.5`}>
+        <BookOpen className="h-4 w-4" />
         Reservas
       </Link>
-      <Link href="/schedule" className={linkClass("/schedule")}>
+      <Link href="/schedule" className={`${linkClass("/schedule")} flex items-center gap-1.5`}>
+        <Clock4 className="h-4 w-4" />
         Cronograma
       </Link>
+      {canManage && (
+        <Link href="/statistics" className={`${linkClass("/statistics")} flex items-center gap-1.5`}>
+          <BarChart2 className="h-4 w-4" />
+          Estadísticas
+        </Link>
+      )}
       {canManage && <NavManageDropdown />}
     </nav>
   )

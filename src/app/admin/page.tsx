@@ -6,32 +6,76 @@ import { prisma } from "@/lib/prisma"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { CreateBusinessForm } from "@/components/modules/admin/create-business-form"
 import { CreateInvitationForm } from "@/components/modules/admin/create-invitation-form"
+import { BusinessActiveToggle } from "@/components/modules/admin/business-active-toggle"
+import { BusinessesSearch } from "@/components/modules/admin/businesses-search"
+import { BusinessesPagination } from "@/components/modules/admin/businesses-pagination"
 
 export const metadata: Metadata = {
   title: "Admin — Agendify",
 }
 
-export default async function AdminPage() {
+const PAGE_SIZE = 5
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string; page?: string; ipage?: string }>
+}) {
   const session = await auth()
   if (session?.user?.role !== "ADMIN") redirect("/dashboard")
 
-  const [businesses, invitations] = await Promise.all([
+  const { search = "", page = "1", ipage = "1" } = await searchParams
+  const currentPage = Math.max(1, parseInt(page, 10) || 1)
+  const invPage = Math.max(1, parseInt(ipage, 10) || 1)
+
+  const where = search
+    ? { name: { contains: search, mode: "insensitive" as const } }
+    : undefined
+
+  const [allFilteredBusinesses, allBusinesses, invitations, invitationsTotal] = await Promise.all([
     prisma.business.findMany({
-      orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, slug: true, isActive: true, createdAt: true },
+      where,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isActive: true,
+        createdAt: true,
+        bookings: {
+          orderBy: { startTime: "desc" },
+          take: 1,
+          select: { startTime: true },
+        },
+      },
     }),
+    prisma.business.findMany({ select: { id: true, name: true } }),
     prisma.invitation.findMany({
       orderBy: { createdAt: "desc" },
-      take: 30,
+      skip: (invPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       select: {
         id: true,
         code: true,
         usedAt: true,
         createdAt: true,
         business: { select: { name: true } },
+        createdBy: { select: { name: true, email: true } },
       },
     }),
+    prisma.invitation.count(),
   ])
+
+  allFilteredBusinesses.sort((a, b) => {
+    const dateA = a.bookings[0]?.startTime?.getTime() ?? 0
+    const dateB = b.bookings[0]?.startTime?.getTime() ?? 0
+    return dateB - dateA
+  })
+
+  const businessesTotal = allFilteredBusinesses.length
+  const businesses = allFilteredBusinesses.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,14 +124,19 @@ export default async function AdminPage() {
             <p className="text-sm text-muted-foreground mb-5 sm:mb-6">
               Genera un código de acceso para el dueño del negocio
             </p>
-            <CreateInvitationForm businesses={businesses} />
+            <CreateInvitationForm businesses={allBusinesses} />
           </div>
         </div>
 
         <section>
-          <h2 className="font-display font-light text-xl sm:text-2xl mb-3 sm:mb-4">Negocios</h2>
-          {businesses.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay negocios registrados.</p>
+          <div className="flex items-center justify-between gap-4 mb-3 sm:mb-4">
+            <h2 className="font-display font-light text-xl sm:text-2xl">Negocios</h2>
+            <BusinessesSearch />
+          </div>
+          {businessesTotal === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {search ? "Sin resultados para esa búsqueda." : "No hay negocios registrados."}
+            </p>
           ) : (
             <div className="border border-border rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
@@ -98,6 +147,8 @@ export default async function AdminPage() {
                       <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Slug</th>
                       <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Estado</th>
                       <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Creado</th>
+                      <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Última reserva</th>
+                      <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Activo</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -121,18 +172,32 @@ export default async function AdminPage() {
                         <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(b.createdAt).toLocaleDateString("es-PA")}
                         </td>
+                        <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                          {b.bookings[0]
+                            ? new Date(b.bookings[0].startTime).toLocaleDateString("es-PA")
+                            : <span className="text-muted-foreground/50">—</span>
+                          }
+                        </td>
+                        <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                          <BusinessActiveToggle id={b.id} isActive={b.isActive} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+              <BusinessesPagination
+                total={businessesTotal}
+                pageSize={PAGE_SIZE}
+                currentPage={currentPage}
+              />
             </div>
           )}
         </section>
 
         <section>
           <h2 className="font-display font-light text-xl sm:text-2xl mb-3 sm:mb-4">Invitaciones</h2>
-          {invitations.length === 0 ? (
+          {invitationsTotal === 0 ? (
             <p className="text-sm text-muted-foreground">No hay invitaciones generadas.</p>
           ) : (
             <div className="border border-border rounded-lg overflow-hidden">
@@ -143,7 +208,8 @@ export default async function AdminPage() {
                       <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Negocio</th>
                       <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Código</th>
                       <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Estado</th>
-                      <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Creado</th>
+                      <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Creado por</th>
+                      <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">Fecha</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -164,6 +230,12 @@ export default async function AdminPage() {
                             {inv.usedAt ? "Usada" : "Disponible"}
                           </span>
                         </td>
+                        <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground">
+                          {inv.createdBy
+                            ? <span title={inv.createdBy.email ?? undefined}>{inv.createdBy.name}</span>
+                            : <span className="text-muted-foreground/50">—</span>
+                          }
+                        </td>
                         <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(inv.createdAt).toLocaleDateString("es-PA")}
                         </td>
@@ -172,6 +244,12 @@ export default async function AdminPage() {
                   </tbody>
                 </table>
               </div>
+              <BusinessesPagination
+                total={invitationsTotal}
+                pageSize={PAGE_SIZE}
+                currentPage={invPage}
+                pageParam="ipage"
+              />
             </div>
           )}
         </section>

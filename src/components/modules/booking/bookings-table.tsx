@@ -13,7 +13,7 @@ export interface BookingRow {
   endTime: string;
   status: "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
   notes: string | null;
-  service: { id: string; name: string; color: string; durationMinutes: number };
+  service: { id: string; name: string; color: string; durationMinutes: number; price: string };
   chair: { id: string; name: string };
   customer: { id: string; name: string; phone: string | null };
 }
@@ -157,6 +157,9 @@ export function BookingsTable({
                   <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap text-sm">
                     Duración
                   </th>
+                  <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap text-sm">
+                    Costo
+                  </th>
                   <th className="hidden lg:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">
                     Notas
                   </th>
@@ -206,6 +209,11 @@ export function BookingsTable({
                     </td>
                     <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                       {booking.service.durationMinutes} min
+                    </td>
+                    <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
+                      {new Intl.NumberFormat("es-PA", { style: "currency", currency: "USD" }).format(
+                        parseFloat(booking.service.price),
+                      )}
                     </td>
                     <td className="hidden lg:table-cell px-4 py-3 text-muted-foreground max-w-50">
                       {booking.notes ? (

@@ -1,11 +1,15 @@
+"use client"
+
+import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { BookingEvent } from "./booking-event"
 import type { Chair, PositionedEvent } from "@/types/calendar"
 
-const GRID_START_HOUR = 8
-const GRID_END_HOUR = 22
+const GRID_START_HOUR = 0
+const GRID_END_HOUR = 24
 const SLOT_HEIGHT_PX = 64
 const TOTAL_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * 2 * SLOT_HEIGHT_PX
+const SCROLL_TO_HOUR = 8
 
 interface ChairsViewProps {
   chairs: Chair[]
@@ -16,27 +20,34 @@ interface ChairsViewProps {
 
 export function ChairsView({ chairs, timeSlots, bookingsForChair, onEventClick }: ChairsViewProps) {
   const colCount = chairs.length || 1
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = SCROLL_TO_HOUR * 2 * SLOT_HEIGHT_PX
+    }
+  }, [])
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Header con nombres de chairs */}
-      <div
-        className="grid shrink-0 border-b border-border"
-        style={{ gridTemplateColumns: `4rem repeat(${colCount}, 1fr)` }}
-      >
-        <div className="border-r border-border" />
-        {chairs.map((chair) => (
-          <div
-            key={chair.id}
-            className="py-3 text-center border-r border-border last:border-r-0"
-          >
-            <p className="text-sm font-medium truncate px-2">{chair.name}</p>
-          </div>
-        ))}
-      </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {/* Header sticky — dentro del scroll para compartir el mismo ancho */}
+        <div
+          className="sticky top-0 z-10 grid border-b border-border bg-background"
+          style={{ gridTemplateColumns: `4rem repeat(${colCount}, 1fr)` }}
+        >
+          <div className="border-r border-border" />
+          {chairs.map((chair) => (
+            <div
+              key={chair.id}
+              className="py-3 text-center border-r border-border last:border-r-0"
+            >
+              <p className="text-sm font-medium truncate px-2">{chair.name}</p>
+            </div>
+          ))}
+        </div>
 
-      {/* Grid con scroll */}
-      <div className="flex-1 overflow-y-auto">
+        {/* Grid */}
         <div className="grid" style={{ gridTemplateColumns: `4rem repeat(${colCount}, 1fr)` }}>
           {/* Columna de horas */}
           <div className="border-r border-border">

@@ -1,13 +1,17 @@
+"use client"
+
+import { useEffect, useRef } from "react"
 import { format, isToday } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { BookingEvent } from "./booking-event"
 import type { PositionedEvent } from "@/types/calendar"
 
-const GRID_START_HOUR = 8
-const GRID_END_HOUR = 22
+const GRID_START_HOUR = 0
+const GRID_END_HOUR = 24
 const SLOT_HEIGHT_PX = 64
 const TOTAL_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * 2 * SLOT_HEIGHT_PX
+const SCROLL_TO_HOUR = 8
 
 interface WeekViewProps {
   weekDays: Date[]
@@ -17,36 +21,47 @@ interface WeekViewProps {
 }
 
 export function WeekView({ weekDays, timeSlots, bookingsForDay, onEventClick }: WeekViewProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = SCROLL_TO_HOUR * 2 * SLOT_HEIGHT_PX
+    }
+  }, [])
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Header con días */}
-      <div className="grid shrink-0 border-b border-border" style={{ gridTemplateColumns: "4rem repeat(7, 1fr)" }}>
-        <div className="border-r border-border" />
-        {weekDays.map((day) => (
-          <div
-            key={day.toISOString()}
-            className={cn(
-              "py-2 text-center border-r border-border last:border-r-0",
-              isToday(day) && "bg-muted/30"
-            )}
-          >
-            <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-              {format(day, "EEE", { locale: es })}
-            </p>
-            <p
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        {/* Header sticky — dentro del scroll para compartir el mismo ancho */}
+        <div
+          className="sticky top-0 z-10 grid border-b border-border bg-background"
+          style={{ gridTemplateColumns: "4rem repeat(7, 1fr)" }}
+        >
+          <div className="border-r border-border" />
+          {weekDays.map((day) => (
+            <div
+              key={day.toISOString()}
               className={cn(
-                "text-sm font-medium mt-0.5 w-7 h-7 mx-auto flex items-center justify-center rounded-full",
-                isToday(day) && "bg-foreground text-background"
+                "py-2 text-center border-r border-border last:border-r-0",
+                isToday(day) && "bg-muted/30"
               )}
             >
-              {format(day, "d")}
-            </p>
-          </div>
-        ))}
-      </div>
+              <p className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">
+                {format(day, "EEE", { locale: es })}
+              </p>
+              <p
+                className={cn(
+                  "text-sm font-medium mt-0.5 w-7 h-7 mx-auto flex items-center justify-center rounded-full",
+                  isToday(day) && "bg-foreground text-background"
+                )}
+              >
+                {format(day, "d")}
+              </p>
+            </div>
+          ))}
+        </div>
 
-      {/* Grid con scroll */}
-      <div className="flex-1 overflow-y-auto">
+        {/* Grid */}
         <div className="grid" style={{ gridTemplateColumns: "4rem repeat(7, 1fr)" }}>
           {/* Columna de horas */}
           <div className="border-r border-border">

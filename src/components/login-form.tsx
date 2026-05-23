@@ -40,6 +40,11 @@ export function LoginForm() {
       redirect: false,
     })
 
+    if (result?.code === "inactive_business") {
+      setServerError("Tu negocio no está activo. Contacta al administrador para activarlo.")
+      return
+    }
+
     if (result?.error) {
       setServerError("Credenciales incorrectas. Intenta de nuevo.")
       return
