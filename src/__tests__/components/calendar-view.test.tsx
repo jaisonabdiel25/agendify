@@ -19,7 +19,7 @@ import { useCalendar } from "@/hooks/use-calendar"
 import { toast } from "sonner"
 import type { BookingEvent, PositionedEvent } from "@/types/calendar"
 
-const mockToast = toast as { success: jest.Mock; error: jest.Mock }
+const mockToast = toast as unknown as { success: jest.Mock; error: jest.Mock }
 const mockUseCalendar = useCalendar as jest.Mock
 
 const timeSlots = Array.from({ length: 4 }, (_, i) => {

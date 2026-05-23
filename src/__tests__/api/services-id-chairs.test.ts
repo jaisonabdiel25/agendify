@@ -155,7 +155,8 @@ describe("PUT /api/services/[id]/chairs — actualización exitosa", () => {
   it("retorna 200 al desasignar todos los puestos (chairIds vacío)", async () => {
     const res = await PUT(makePutRequest({ chairIds: [] }), makeParams("s1"))
     expect(res.status).toBe(200)
-    expect(body => body.ok).toBeTruthy()
+    const body = await res.json()
+    expect(body.ok).toBe(true)
   })
 
   it("no valida chairIds cuando el array está vacío", async () => {

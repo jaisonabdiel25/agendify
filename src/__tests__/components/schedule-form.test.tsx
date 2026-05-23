@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event"
 import { ScheduleForm } from "@/components/modules/schedule/schedule-form"
 import { toast } from "sonner"
 
-const mockToast = toast as { success: jest.Mock; error: jest.Mock }
+const mockToast = toast as unknown as { success: jest.Mock; error: jest.Mock }
 
 const chair = {
   id: "chair-1",

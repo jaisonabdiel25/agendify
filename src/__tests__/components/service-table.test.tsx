@@ -11,7 +11,7 @@ import { ServiceTable } from "@/components/modules/service/service-table"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
-const mockToast = toast as { success: jest.Mock; error: jest.Mock }
+const mockToast = toast as unknown as { success: jest.Mock; error: jest.Mock }
 const mockRefresh = jest.fn()
 
 const services = [
