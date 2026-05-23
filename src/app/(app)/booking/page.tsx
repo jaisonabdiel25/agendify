@@ -53,7 +53,7 @@ export default async function BookingPage({
       where,
       include: {
         service: {
-          select: { id: true, name: true, color: true, durationMinutes: true },
+          select: { id: true, name: true, color: true, durationMinutes: true, price: true },
         },
         chair: { select: { id: true, name: true } },
         customer: { select: { id: true, name: true, phone: true } },
@@ -79,7 +79,7 @@ export default async function BookingPage({
     endTime: b.endTime.toISOString(),
     status: b.status,
     notes: b.notes,
-    service: b.service,
+    service: { ...b.service, price: b.service.price.toString() },
     chair: b.chair,
     customer: b.customer,
   }));

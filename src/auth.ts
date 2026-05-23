@@ -1,10 +1,14 @@
-import NextAuth from "next-auth"
+import NextAuth, { CredentialsSignin } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import { UserRole } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { credentialsSchema } from "@/lib/auth-schema"
 import { getAuthorizedResponse } from "@/lib/auth-logic"
+
+class InactiveBusinessError extends CredentialsSignin {
+  code = "inactive_business"
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -24,6 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             passwordHash: true,
             businessId: true,
             role: true,
+            business: { select: { isActive: true } },
           },
         })
 
@@ -31,6 +36,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const valid = await bcrypt.compare(password, user.passwordHash)
         if (!valid) return null
+
+        if (user.role !== "ADMIN" && !user.business.isActive) {
+          throw new InactiveBusinessError()
+        }
 
         return {
           id: user.id,

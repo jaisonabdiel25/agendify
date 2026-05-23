@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     }
 
     const invitation = await prisma.invitation.create({
-      data: { businessId, code },
+      data: { businessId, code, createdById: session.user.id },
     })
 
     return NextResponse.json(invitation, { status: 201 })

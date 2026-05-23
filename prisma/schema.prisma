@@ -49,8 +49,9 @@ model User {
   role         UserRole @default(STAFF)
   createdAt    DateTime @default(now())
 
-  business Business @relation(fields: [businessId], references: [id])
-  chair    Chair?
+  business            Business     @relation(fields: [businessId], references: [id])
+  chair               Chair?
+  createdInvitations  Invitation[] @relation("InvitationCreator")
 }
 
 model Chair {
@@ -127,13 +128,15 @@ model Customer {
 }
 
 model Invitation {
-  id         String    @id @default(cuid())
-  businessId String
-  code       String    @unique
-  usedAt     DateTime?
-  createdAt  DateTime  @default(now())
+  id          String    @id @default(cuid())
+  businessId  String
+  createdById String?
+  code        String    @unique
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
 
-  business Business @relation(fields: [businessId], references: [id])
+  business   Business @relation(fields: [businessId], references: [id])
+  createdBy  User?    @relation("InvitationCreator", fields: [createdById], references: [id])
 }
 
 model Booking {
