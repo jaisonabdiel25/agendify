@@ -6,6 +6,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum PlanType {
+  STANDARD
+  PRO
+}
+
 enum UserRole {
   OWNER
   ADMIN
@@ -20,6 +25,14 @@ enum BookingStatus {
   NO_SHOW
 }
 
+model Plan {
+  id         String     @id @default(cuid())
+  type       PlanType   @unique
+  name       String
+  createdAt  DateTime   @default(now())
+  businesses Business[]
+}
+
 model Business {
   id        String   @id @default(cuid())
   name      String
@@ -29,9 +42,11 @@ model Business {
   timezone  String   @default("America/Panama")
   address   String?
   isActive  Boolean  @default(true)
+  planId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  plan        Plan         @relation(fields: [planId], references: [id])
   users       User[]
   chairs      Chair[]
   services    Service[]

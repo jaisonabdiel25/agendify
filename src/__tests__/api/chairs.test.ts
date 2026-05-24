@@ -4,9 +4,13 @@ jest.mock("@/lib/prisma", () => ({
     chair: {
       findMany: jest.fn(),
       create: jest.fn(),
+      count: jest.fn(),
     },
     user: {
       findFirst: jest.fn(),
+    },
+    business: {
+      findUnique: jest.fn(),
     },
   },
 }))
@@ -34,6 +38,7 @@ const mockChair = {
 }
 
 const validChairBody = { name: "Silla nueva", color: "#6366f1" }
+const mockProBusinessPlan = { plan: { type: "PRO" } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -127,8 +132,48 @@ describe("POST /api/chairs", () => {
     expect(res.status).toBe(400)
   })
 
+  it("retorna 403 cuando plan STANDARD ya tiene 1 puesto activo", async () => {
+    authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      { plan: { type: "STANDARD" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.chair.count).mockResolvedValue(1)
+
+    const req = new Request("http://localhost/api/chairs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validChairBody),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error).toContain("Estándar")
+  })
+
+  it("retorna 403 cuando plan PRO ya tiene 3 puestos activos", async () => {
+    authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      { plan: { type: "PRO" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.chair.count).mockResolvedValue(3)
+
+    const req = new Request("http://localhost/api/chairs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validChairBody),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error).toContain("Pro")
+  })
+
   it("retorna 400 si userId no pertenece al negocio", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.chair.count).mockResolvedValue(0)
     jest.mocked(prisma.user.findFirst).mockResolvedValue(null)
 
     const req = new Request("http://localhost/api/chairs", {
@@ -144,6 +189,10 @@ describe("POST /api/chairs", () => {
 
   it("retorna 201 con la silla creada por OWNER", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.chair.count).mockResolvedValue(0)
     jest.mocked(prisma.chair.create).mockResolvedValue({
       id: "new-chair",
       businessId: "biz-1",
@@ -168,6 +217,10 @@ describe("POST /api/chairs", () => {
 
   it("crea silla con userId válido cuando el usuario pertenece al negocio", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.chair.count).mockResolvedValue(0)
     jest.mocked(prisma.user.findFirst).mockResolvedValue({
       id: "user-2",
     } as unknown as Awaited<ReturnType<typeof prisma.user.findFirst>>)
@@ -195,6 +248,10 @@ describe("POST /api/chairs", () => {
 
   it("usa color por defecto #6366f1 si no se provee color", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.chair.count).mockResolvedValue(0)
     jest.mocked(prisma.chair.create).mockResolvedValue({
       id: "new-chair",
       name: "Sin color",

@@ -3,6 +3,7 @@ import { z } from "zod"
 import { randomBytes } from "crypto"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { checkInviteAllowed } from "@/lib/plan-utils"
 
 const schema = z.object({
   businessId: z.string().min(1),
@@ -35,6 +36,11 @@ export async function POST(request: Request) {
     const business = await prisma.business.findUnique({ where: { id: businessId } })
     if (!business) {
       return NextResponse.json({ error: "Negocio no encontrado." }, { status: 404 })
+    }
+
+    const limitCheck = await checkInviteAllowed(businessId)
+    if (!limitCheck.allowed) {
+      return NextResponse.json({ error: limitCheck.message }, { status: 403 })
     }
 
     let code = generateCode()

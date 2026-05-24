@@ -117,4 +117,31 @@ describe("CreateChairForm — error del servidor", () => {
       expect(screen.getByText("Nombre ya existe")).toBeInTheDocument()
     })
   })
+
+  it("muestra error genérico cuando el servidor falla sin body.error", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    } as Response)
+    const user = userEvent.setup()
+    render(<CreateChairForm users={users} />)
+    await user.type(screen.getByLabelText("Nombre *"), "Silla A")
+    await user.click(screen.getByRole("button", { name: "Crear puesto" }))
+    await waitFor(() => {
+      expect(screen.getByText("Error al crear el puesto.")).toBeInTheDocument()
+    })
+  })
+})
+
+describe("CreateChairForm — userId none", () => {
+  it("envía sin userId cuando se selecciona Sin asignar", async () => {
+    const user = userEvent.setup()
+    render(<CreateChairForm users={users} />)
+    await user.type(screen.getByLabelText("Nombre *"), "Silla B")
+    await user.click(screen.getByRole("button", { name: "Crear puesto" }))
+    await waitFor(() => {
+      const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)
+      expect(body.userId).toBeUndefined()
+    })
+  })
 })

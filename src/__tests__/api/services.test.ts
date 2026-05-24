@@ -4,6 +4,10 @@ jest.mock("@/lib/prisma", () => ({
     service: {
       findMany: jest.fn(),
       create: jest.fn(),
+      count: jest.fn(),
+    },
+    business: {
+      findUnique: jest.fn(),
     },
   },
 }))
@@ -45,6 +49,8 @@ const validServiceBody = {
   color: "#6366f1",
   isActive: true,
 }
+
+const mockProBusinessPlan = { plan: { type: "PRO" } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -153,8 +159,48 @@ describe("POST /api/services", () => {
     expect(res.status).toBe(400)
   })
 
+  it("retorna 403 cuando plan STANDARD ya tiene 1 servicio activo", async () => {
+    authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      { plan: { type: "STANDARD" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.service.count).mockResolvedValue(1)
+
+    const req = new Request("http://localhost/api/services", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validServiceBody),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error).toContain("Estándar")
+  })
+
+  it("retorna 403 cuando plan PRO ya tiene 2 servicios activos", async () => {
+    authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      { plan: { type: "PRO" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.service.count).mockResolvedValue(2)
+
+    const req = new Request("http://localhost/api/services", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(validServiceBody),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error).toContain("Pro")
+  })
+
   it("retorna 201 con el servicio creado", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.service.count).mockResolvedValue(0)
     jest.mocked(prisma.service.create).mockResolvedValue({
       ...mockService,
       name: validServiceBody.name,
@@ -174,6 +220,10 @@ describe("POST /api/services", () => {
 
   it("retorna 201 para ADMIN también", async () => {
     authMock.mockResolvedValue(mockAdminSession)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+    )
+    jest.mocked(prisma.service.count).mockResolvedValue(0)
     jest.mocked(prisma.service.create).mockResolvedValue(
       mockService as unknown as Awaited<ReturnType<typeof prisma.service.create>>
     )

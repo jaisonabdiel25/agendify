@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { checkInviteAllowed } from "@/lib/plan-utils"
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -18,6 +19,11 @@ export async function POST() {
   }
   if (session.user.role !== "OWNER" && session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "No tienes permisos para generar invitaciones" }, { status: 403 })
+  }
+
+  const limitCheck = await checkInviteAllowed(session.user.businessId)
+  if (!limitCheck.allowed) {
+    return NextResponse.json({ error: limitCheck.message }, { status: 403 })
   }
 
   let code = generateCode()

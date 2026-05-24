@@ -32,7 +32,7 @@ export default async function AdminPage({
     ? { name: { contains: search, mode: "insensitive" as const } }
     : undefined
 
-  const [allFilteredBusinesses, allBusinesses, invitations, invitationsTotal] = await Promise.all([
+  const [allFilteredBusinesses, allBusinesses, invitations, invitationsTotal, plans] = await Promise.all([
     prisma.business.findMany({
       where,
       select: {
@@ -48,7 +48,14 @@ export default async function AdminPage({
         },
       },
     }),
-    prisma.business.findMany({ select: { id: true, name: true } }),
+    prisma.business.findMany({
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { users: true } },
+        plan: { select: { type: true } },
+      },
+    }),
     prisma.invitation.findMany({
       orderBy: { createdAt: "desc" },
       skip: (invPage - 1) * PAGE_SIZE,
@@ -63,6 +70,7 @@ export default async function AdminPage({
       },
     }),
     prisma.invitation.count(),
+    prisma.plan.findMany({ select: { id: true, name: true }, orderBy: { createdAt: "asc" } }),
   ])
 
   allFilteredBusinesses.sort((a, b) => {
@@ -87,6 +95,10 @@ export default async function AdminPage({
             </Link>
             <span className="text-muted-foreground/40 shrink-0">·</span>
             <span className="text-sm text-muted-foreground truncate">Panel Admin</span>
+            <span className="text-muted-foreground/40 shrink-0">·</span>
+            <Link href="/admin/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
+              Planes
+            </Link>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <form action={async () => {
@@ -114,7 +126,7 @@ export default async function AdminPage({
             <p className="text-sm text-muted-foreground mb-5 sm:mb-6">
               Registra un negocio en la plataforma
             </p>
-            <CreateBusinessForm />
+            <CreateBusinessForm plans={plans} />
           </div>
 
           <div className="border border-border rounded-lg p-5 sm:p-6">
@@ -124,7 +136,14 @@ export default async function AdminPage({
             <p className="text-sm text-muted-foreground mb-5 sm:mb-6">
               Genera un código de acceso para el dueño del negocio
             </p>
-            <CreateInvitationForm businesses={allBusinesses} />
+            <CreateInvitationForm
+              businesses={allBusinesses.map((b) => ({
+                id: b.id,
+                name: b.name,
+                planType: b.plan?.type ?? null,
+                userCount: b._count.users,
+              }))}
+            />
           </div>
         </div>
 

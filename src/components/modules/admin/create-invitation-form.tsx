@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Check, Copy, Loader2 } from "lucide-react"
+import { AlertCircle, Check, Copy, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { PLAN_LIMITS } from "@/constant"
 
 const schema = z.object({
   businessId: z.string().min(1, "Selecciona un negocio"),
@@ -18,6 +19,8 @@ type FormValues = z.infer<typeof schema>
 interface Business {
   id: string
   name: string
+  planType: "STANDARD" | "PRO" | null
+  userCount: number
 }
 
 export function CreateInvitationForm({ businesses }: { businesses: Business[] }) {
@@ -30,8 +33,22 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
+
+  const selectedBusinessId = watch("businessId")
+  const selectedBusiness = businesses.find((b) => b.id === selectedBusinessId)
+
+  const inviteBlockedMessage = (() => {
+    if (!selectedBusiness) return null
+    if (!selectedBusiness.planType) return "Este negocio no tiene un plan asignado."
+    const limits = PLAN_LIMITS[selectedBusiness.planType]
+    if (!limits.canInvite) return "El plan Estándar no permite generar invitaciones."
+    if (selectedBusiness.userCount >= limits.maxUsers)
+      return `El plan Pro permite hasta ${limits.maxUsers} usuarios. Ya se alcanzó el límite.`
+    return null
+  })()
 
   async function onSubmit(data: FormValues) {
     setServerError(null)
@@ -83,6 +100,13 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
         )}
       </div>
 
+      {inviteBlockedMessage && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+          <p className="text-sm text-amber-600 dark:text-amber-400">{inviteBlockedMessage}</p>
+        </div>
+      )}
+
       {serverError && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
           <p className="text-sm text-destructive">{serverError}</p>
@@ -115,7 +139,7 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
       <Button
         type="submit"
         className="w-full"
-        disabled={isSubmitting || businesses.length === 0}
+        disabled={isSubmitting || businesses.length === 0 || !!inviteBlockedMessage}
       >
         {isSubmitting ? (
           <>

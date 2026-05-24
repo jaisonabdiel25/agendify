@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { checkServiceLimit } from "@/lib/plan-utils"
 
 const createSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -51,6 +52,11 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? /* istanbul ignore next */ "Datos inválidos"
     return NextResponse.json({ error: message }, { status: 400 })
+  }
+
+  const limitCheck = await checkServiceLimit(session.user.businessId)
+  if (!limitCheck.allowed) {
+    return NextResponse.json({ error: limitCheck.message }, { status: 403 })
   }
 
   const service = await prisma.service.create({

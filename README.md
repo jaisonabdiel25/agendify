@@ -75,18 +75,35 @@ pnpm prisma studio            # UI visual de la base de datos
 | `/user` | Perfil de usuario | Todos |
 | `/admin` | Panel de super-admin | Super-admin |
 
+## Planes
+
+Cada negocio tiene un plan asociado que determina sus límites de uso.
+
+| Recurso | Estándar | Pro |
+|---|---|---|
+| Servicios activos | 1 | 2 |
+| Puestos activos | 1 | 3 |
+| Usuarios (incluye OWNER) | 1 | 3 |
+| Invitaciones | No permitido | Hasta completar 3 usuarios |
+| Estadísticas | Solo "Estado de reservas" | Todos los gráficos |
+
+- Los límites se definen en `src/constant.ts` (`PLAN_LIMITS`).
+- El admin asigna el plan al crear el negocio o desde `/admin/plans`.
+- Los negocios existentes al crear el sistema reciben el plan **Pro**.
+
 ## Modelo de datos
 
 El modelo central es `Business` — todo registro (usuarios, puestos, servicios, clientes, reservas) lleva `businessId` y se filtra siempre por él para garantizar el aislamiento multi-tenant.
 
 ```
-Business
-  ├── User (roles: OWNER, ADMIN, STAFF)
-  ├── Chair (puesto de trabajo)
-  │     ├── ChairSchedule (horarios por día)
-  │     └── ChairService (servicios que ofrece)
-  ├── Service (servicio con duración y precio)
-  ├── Customer (cliente del negocio)
-  ├── Booking (reserva con estado: PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW)
-  └── Invitation (código de invitación para registro)
+Plan (STANDARD | PRO)
+  └── Business
+        ├── User (roles: OWNER, ADMIN, STAFF)
+        ├── Chair (puesto de trabajo)
+        │     ├── ChairSchedule (horarios por día)
+        │     └── ChairService (servicios que ofrece)
+        ├── Service (servicio con duración y precio)
+        ├── Customer (cliente del negocio)
+        ├── Booking (reserva con estado: PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW)
+        └── Invitation (código de invitación para registro)
 ```

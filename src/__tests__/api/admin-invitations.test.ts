@@ -3,6 +3,7 @@ jest.mock("@/lib/prisma", () => ({
   prisma: {
     business: { findUnique: jest.fn() },
     invitation: { findUnique: jest.fn(), create: jest.fn() },
+    user: { count: jest.fn() },
   },
 }))
 
@@ -16,6 +17,8 @@ const mockAdminSession = {
   user: { id: "admin-1", role: "ADMIN" },
   expires: "2099-12-31",
 }
+
+const mockProBusiness = { id: "biz-1", plan: { type: "PRO" } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -67,44 +70,74 @@ describe("POST /api/admin/invitations — lógica de negocio", () => {
   beforeEach(() => authMock.mockResolvedValue(mockAdminSession))
 
   it("retorna 404 cuando el negocio no existe", async () => {
-    ;(prisma.business.findUnique as jest.Mock).mockResolvedValue(null)
+    jest.mocked(prisma.business.findUnique).mockResolvedValue(null)
     const res = await POST(makeRequest({ businessId: "biz-99" }))
     expect(res.status).toBe(404)
     const body = await res.json()
     expect(body.error).toMatch(/no encontrado/i)
   })
 
+  it("retorna 403 cuando el negocio tiene plan STANDARD", async () => {
+    jest.mocked(prisma.business.findUnique)
+      .mockResolvedValueOnce({ id: "biz-1" } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      .mockResolvedValueOnce({ plan: { type: "STANDARD" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+    const res = await POST(makeRequest({ businessId: "biz-1" }))
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error).toContain("Estándar")
+  })
+
+  it("retorna 403 cuando el negocio PRO ya tiene 3 usuarios", async () => {
+    jest.mocked(prisma.business.findUnique)
+      .mockResolvedValueOnce({ id: "biz-1" } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      .mockResolvedValueOnce(mockProBusiness as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+    jest.mocked(prisma.user.count).mockResolvedValue(3)
+    const res = await POST(makeRequest({ businessId: "biz-1" }))
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.error).toContain("Pro")
+  })
+
   it("retorna 201 con la invitación creada", async () => {
-    ;(prisma.business.findUnique as jest.Mock).mockResolvedValue({ id: "biz-1" })
-    ;(prisma.invitation.findUnique as jest.Mock).mockResolvedValue(null)
-    ;(prisma.invitation.create as jest.Mock).mockResolvedValue({
+    jest.mocked(prisma.business.findUnique)
+      .mockResolvedValueOnce({ id: "biz-1" } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      .mockResolvedValueOnce(mockProBusiness as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+    jest.mocked(prisma.user.count).mockResolvedValue(1)
+    jest.mocked(prisma.invitation.findUnique).mockResolvedValue(null)
+    jest.mocked(prisma.invitation.create).mockResolvedValue({
       id: "inv-1",
       code: "ABCD-1234",
       businessId: "biz-1",
       createdById: "admin-1",
-    })
+    } as unknown as Awaited<ReturnType<typeof prisma.invitation.create>>)
     const res = await POST(makeRequest({ businessId: "biz-1" }))
     expect(res.status).toBe(201)
   })
 
   it("genera un nuevo código si el primero ya está en uso", async () => {
-    ;(prisma.business.findUnique as jest.Mock).mockResolvedValue({ id: "biz-1" })
-    ;(prisma.invitation.findUnique as jest.Mock)
-      .mockResolvedValueOnce({ id: "existing-inv" })
+    jest.mocked(prisma.business.findUnique)
+      .mockResolvedValueOnce({ id: "biz-1" } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      .mockResolvedValueOnce(mockProBusiness as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+    jest.mocked(prisma.user.count).mockResolvedValue(1)
+    jest.mocked(prisma.invitation.findUnique)
+      .mockResolvedValueOnce({ id: "existing-inv" } as unknown as Awaited<ReturnType<typeof prisma.invitation.findUnique>>)
       .mockResolvedValueOnce(null)
-    ;(prisma.invitation.create as jest.Mock).mockResolvedValue({
+    jest.mocked(prisma.invitation.create).mockResolvedValue({
       id: "inv-2",
       code: "WXYZ-5678",
-    })
+    } as unknown as Awaited<ReturnType<typeof prisma.invitation.create>>)
     const res = await POST(makeRequest({ businessId: "biz-1" }))
     expect(res.status).toBe(201)
     expect(prisma.invitation.findUnique).toHaveBeenCalledTimes(2)
   })
 
   it("asocia la invitación al businessId y al creador", async () => {
-    ;(prisma.business.findUnique as jest.Mock).mockResolvedValue({ id: "biz-1" })
-    ;(prisma.invitation.findUnique as jest.Mock).mockResolvedValue(null)
-    ;(prisma.invitation.create as jest.Mock).mockResolvedValue({ id: "inv-1", code: "ABCD-1234" })
+    jest.mocked(prisma.business.findUnique)
+      .mockResolvedValueOnce({ id: "biz-1" } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      .mockResolvedValueOnce(mockProBusiness as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+    jest.mocked(prisma.user.count).mockResolvedValue(1)
+    jest.mocked(prisma.invitation.findUnique).mockResolvedValue(null)
+    jest.mocked(prisma.invitation.create).mockResolvedValue({ id: "inv-1", code: "ABCD-1234" } as unknown as Awaited<ReturnType<typeof prisma.invitation.create>>)
     await POST(makeRequest({ businessId: "biz-1" }))
     expect(prisma.invitation.create).toHaveBeenCalledWith(
       expect.objectContaining({

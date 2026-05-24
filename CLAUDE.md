@@ -41,6 +41,24 @@ Los tests viven en `src/__tests__/` con dos subcarpetas:
 El umbral de cobertura global es **90%** en branches, functions, lines y statements (configurado en `jest.config.mjs`).
 Siempre que realizamos cambios en componentes o creamos archivos nuevos, se debe ya sea ajustar o crear las test.
 
+## Planes
+
+Cada `Business` tiene un `planId` que referencia al modelo `Plan` (enum `PlanType`: `STANDARD` | `PRO`).
+
+| Recurso | Estándar | Pro |
+|---|---|---|
+| Servicios activos | 1 | 2 |
+| Puestos activos | 1 | 3 |
+| Usuarios | 1 | 3 |
+| Invitaciones | No | Sí (hasta 3 usuarios) |
+| Estadísticas | Solo estado de reservas | Completas |
+
+- Los límites viven en `PLAN_LIMITS` en `src/constant.ts`.
+- Las funciones de verificación están en `src/lib/plan-utils.ts`: `checkServiceLimit`, `checkChairLimit`, `checkInviteAllowed`.
+- **Siempre verificar los límites del plan antes de crear servicios, puestos o generar invitaciones** en rutas API.
+- El admin gestiona los planes de negocios desde `/admin/plans`.
+- Los seeds de la tabla `Plan` usan IDs fijos: `plan_standard_v1` y `plan_pro_v1`.
+
 ## Reglas
 
 - **No modificar `src/components/ui/`** — son generados por shadcn/ui y se sobreescriben en actualizaciones. Las personalizaciones van en los componentes de cada módulo.
@@ -49,4 +67,4 @@ Siempre que realizamos cambios en componentes o creamos archivos nuevos, se debe
 - **Siempre manejar errores** en las rutas API.
 - **No modificar `/config`** sin preguntar primero.
 - **Siempre filtrar por `businessId`** en cualquier consulta a la base de datos para mantener el aislamiento multi-tenant.
-- **cuando vas a utilizar contante que se utilicen globalmente, crealas en `/contant`** 
+- **cuando vas a utilizar contante que se utilicen globalmente, crealas en `/contant`**

@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Loader2, Pencil, X, Copy, Check, RefreshCw } from "lucide-react"
+import { AlertCircle, Loader2, Pencil, X, Copy, Check, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { PLAN_LIMITS } from "@/constant"
+import type { PlanType } from "@prisma/client"
 
 const schema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -38,9 +41,17 @@ interface Invitation {
   createdAt: string
 }
 
+interface Plan {
+  id: string
+  name: string
+  type: PlanType
+}
+
 interface BusinessCardProps {
   business: Business
   invitation: Invitation | null
+  plan: Plan
+  userCount: number
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null }) {
@@ -52,7 +63,9 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
   )
 }
 
-export function BusinessCard({ business, invitation: initialInvitation }: BusinessCardProps) {
+export function BusinessCard({ business, invitation: initialInvitation, plan, userCount }: BusinessCardProps) {
+  const planLimits = PLAN_LIMITS[plan.type]
+  const isAtUserLimit = planLimits.canInvite && userCount >= planLimits.maxUsers
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -123,7 +136,12 @@ export function BusinessCard({ business, invitation: initialInvitation }: Busine
       {/* Business info card */}
       <div className="rounded-xl border border-border bg-card">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="font-medium text-sm">Información del negocio</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-medium text-sm">Información del negocio</h2>
+            <Badge variant={plan.type === "PRO" ? "default" : "secondary"} className="text-[0.65rem]">
+              {plan.name}
+            </Badge>
+          </div>
           {!isEditing ? (
             <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
               <Pencil className="h-3.5 w-3.5 mr-1.5" />
@@ -248,40 +266,61 @@ export function BusinessCard({ business, invitation: initialInvitation }: Busine
         <div className="px-6 py-4 border-b border-border">
           <h2 className="font-medium text-sm">Código de invitación</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Comparte este código para que nuevos usuarios se registren en tu negocio.
+            {planLimits.canInvite
+              ? "Comparte este código para que nuevos usuarios se registren en tu negocio."
+              : "Tu plan Estándar no permite invitar usuarios adicionales."}
           </p>
         </div>
 
         <div className="px-6 py-5 space-y-4">
-          {invitation ? (
-            <div className="flex items-center gap-3">
-              <div className="flex-1 rounded-lg border border-border bg-muted/40 px-4 py-2.5">
-                <p className="font-mono font-medium tracking-widest text-lg">{invitation.code}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Generado el {new Date(invitation.createdAt).toLocaleDateString("es-PA")}
-                </p>
-              </div>
-              <Button variant="outline" size="icon" onClick={copyCode} title="Copiar código">
-                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No hay código de invitación activo.</p>
-          )}
+          {planLimits.canInvite ? (
+            <>
+              {isAtUserLimit && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                  <p className="text-sm text-amber-600 dark:text-amber-400">
+                    Tu plan Pro permite hasta {planLimits.maxUsers} usuarios. Ya se alcanzó el límite.
+                  </p>
+                </div>
+              )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={generateCode}
-            disabled={generatingCode}
-          >
-            {generatingCode ? (
-              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-2 h-3.5 w-3.5" />
-            )}
-            Generar nuevo código
-          </Button>
+              {invitation ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 rounded-lg border border-border bg-muted/40 px-4 py-2.5">
+                    <p className="font-mono font-medium tracking-widest text-lg">{invitation.code}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Generado el {new Date(invitation.createdAt).toLocaleDateString("es-PA")}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="icon" onClick={copyCode} title="Copiar código">
+                    {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              ) : (
+                !isAtUserLimit && (
+                  <p className="text-sm text-muted-foreground">No hay código de invitación activo.</p>
+                )
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generateCode}
+                disabled={generatingCode || isAtUserLimit}
+              >
+                {generatingCode ? (
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                )}
+                Generar nuevo código
+              </Button>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">
+              Actualiza tu plan para poder invitar colaboradores a tu negocio.
+            </p>
+          )}
         </div>
       </div>
     </div>

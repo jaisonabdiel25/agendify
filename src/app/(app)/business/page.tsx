@@ -22,6 +22,8 @@ export default async function BusinessPage() {
         timezone: true,
         address: true,
         createdAt: true,
+        plan: { select: { id: true, name: true, type: true } },
+        _count: { select: { users: true } },
       },
     }),
     prisma.invitation.findFirst({
@@ -44,6 +46,8 @@ export default async function BusinessPage() {
         <BusinessCard
           business={{ ...business, createdAt: business.createdAt.toISOString() }}
           invitation={invitation ? { ...invitation, createdAt: invitation.createdAt.toISOString() } : null}
+          plan={business.plan}
+          userCount={business._count.users}
         />
       </div>
     </div>

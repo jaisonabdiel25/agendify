@@ -81,6 +81,33 @@ describe("RegisterForm — toggle de contraseña", () => {
     await user.click(toggleBtns[0])
     expect(screen.getByPlaceholderText("Mínimo 8 caracteres")).toHaveAttribute("type", "text")
   })
+
+  it("oculta la contraseña al hacer clic de nuevo (toggle password)", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    const toggleBtns = screen.getAllByLabelText("Mostrar contraseña")
+    await user.click(toggleBtns[0])
+    await user.click(screen.getByLabelText("Ocultar contraseña"))
+    expect(screen.getByPlaceholderText("Mínimo 8 caracteres")).toHaveAttribute("type", "password")
+  })
+
+  it("muestra el campo de confirmar contraseña al hacer clic en su toggle", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    const toggleBtns = screen.getAllByLabelText("Mostrar contraseña")
+    await user.click(toggleBtns[1])
+    expect(screen.getByPlaceholderText("Repite tu contraseña")).toHaveAttribute("type", "text")
+  })
+
+  it("oculta el campo de confirmar contraseña al hacer clic de nuevo", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    const toggleBtns = screen.getAllByLabelText("Mostrar contraseña")
+    await user.click(toggleBtns[1])
+    const hideBtns = screen.getAllByLabelText("Ocultar contraseña")
+    await user.click(hideBtns[hideBtns.length - 1])
+    expect(screen.getByPlaceholderText("Repite tu contraseña")).toHaveAttribute("type", "password")
+  })
 })
 
 describe("RegisterForm — submit exitoso", () => {

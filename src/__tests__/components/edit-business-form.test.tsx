@@ -121,4 +121,29 @@ describe("EditBusinessForm — error del servidor", () => {
       expect(screen.getByText("Nombre ya existe")).toBeInTheDocument()
     })
   })
+
+  it("muestra error genérico cuando el servidor falla sin body.error", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({}),
+    } as Response)
+    const user = userEvent.setup()
+    render(<EditBusinessForm business={business} />)
+    await user.clear(screen.getByLabelText("Nombre del negocio *"))
+    await user.type(screen.getByLabelText("Nombre del negocio *"), "Nueva Barbería")
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }))
+    await waitFor(() => {
+      expect(screen.getByText("Error al guardar los cambios.")).toBeInTheDocument()
+    })
+  })
+})
+
+describe("EditBusinessForm — negocio sin datos opcionales", () => {
+  it("renderiza correctamente con phone y email nulos", () => {
+    const businessSinDatos = { ...business, phone: null, email: null, address: null }
+    render(<EditBusinessForm business={businessSinDatos} />)
+    expect(screen.getByLabelText("Nombre del negocio *")).toHaveValue("Mi Barbería")
+    expect(screen.getByLabelText("Teléfono")).toHaveValue("")
+    expect(screen.getByLabelText("Correo electrónico")).toHaveValue("")
+  })
 })

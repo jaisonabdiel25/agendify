@@ -42,6 +42,12 @@ export default async function StatisticsPage({
   if (session.user.role === "STAFF") redirect("/booking")
   const { businessId } = session.user
 
+  const businessPlan = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { plan: { select: { type: true } } },
+  })
+  const planType = businessPlan?.plan?.type ?? "STANDARD"
+
   const { month: monthParam } = await searchParams
   const ref = monthParam ? parseISO(`${monthParam}-01`) : new Date()
   const safe = isValid(ref) ? ref : new Date()
@@ -165,6 +171,8 @@ export default async function StatisticsPage({
     .sort((a, b) => b.totalBookings - a.totalBookings)
     .slice(0, 10)
 
+  const isPro = planType === "PRO"
+
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 sm:space-y-8">
       {/* Encabezado + navegador de período */}
@@ -176,26 +184,25 @@ export default async function StatisticsPage({
         <PeriodNav currentMonth={resolvedMonth} />
       </div>
 
-      {/* 4 tarjetas KPI */}
-      <KpiGrid data={kpi} />
+      {isPro && <KpiGrid data={kpi} />}
 
-      {/* Estado + tendencia diaria */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className={isPro ? "grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" : undefined}>
         <StatusChart data={statusData} />
-        <DailyTrend data={dailyData} />
+        {isPro && <DailyTrend data={dailyData} />}
       </div>
 
-      {/* Tendencia mensual — ancho completo */}
-      <MonthlyTrend data={monthlyData} />
+      {isPro && (
+        <>
+          <MonthlyTrend data={monthlyData} />
 
-      {/* Servicios + puestos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <ServiceChart data={serviceData} />
-        <ChairChart data={chairData} />
-      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <ServiceChart data={serviceData} />
+            <ChairChart data={chairData} />
+          </div>
 
-      {/* Top clientes — ancho completo */}
-      <TopCustomers data={customerData} />
+          <TopCustomers data={customerData} />
+        </>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { checkChairLimit } from "@/lib/plan-utils"
 
 export async function GET() {
   const session = await auth()
@@ -49,6 +50,11 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Usuario no válido" }, { status: 400 })
     }
+  }
+
+  const limitCheck = await checkChairLimit(session.user.businessId)
+  if (!limitCheck.allowed) {
+    return NextResponse.json({ error: limitCheck.message }, { status: 403 })
   }
 
   const chair = await prisma.chair.create({

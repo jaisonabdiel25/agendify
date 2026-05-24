@@ -9,14 +9,31 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const schema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  planId: z.string().min(1, "Debes seleccionar un plan"),
 })
 
 type FormValues = z.infer<typeof schema>
 
-export function CreateBusinessForm() {
+interface Plan {
+  id: string
+  name: string
+}
+
+interface CreateBusinessFormProps {
+  plans: Plan[]
+}
+
+export function CreateBusinessForm({ plans }: CreateBusinessFormProps) {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -24,9 +41,13 @@ export function CreateBusinessForm() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
+
+  const planId = watch("planId")
 
   async function onSubmit(data: FormValues) {
     setServerError(null)
@@ -63,6 +84,25 @@ export function CreateBusinessForm() {
         />
         {errors.name && (
           <p className="text-xs text-destructive">{errors.name.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="planId">Plan</Label>
+        <Select value={planId} onValueChange={(val) => setValue("planId", val, { shouldValidate: true })}>
+          <SelectTrigger id="planId" aria-invalid={!!errors.planId}>
+            <SelectValue placeholder="Selecciona un plan" />
+          </SelectTrigger>
+          <SelectContent>
+            {plans.map((plan) => (
+              <SelectItem key={plan.id} value={plan.id}>
+                {plan.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.planId && (
+          <p className="text-xs text-destructive">{errors.planId.message}</p>
         )}
       </div>
 
