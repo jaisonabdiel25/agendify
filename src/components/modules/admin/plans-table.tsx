@@ -75,7 +75,7 @@ function PlanRow({ business, plans }: { business: BusinessWithPlan; plans: Plan[
           <SelectTrigger className="h-8 w-36 text-xs">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {plans.map((plan) => (
               <SelectItem key={plan.id} value={plan.id} className="text-xs">
                 {plan.name}

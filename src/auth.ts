@@ -10,6 +10,10 @@ class InactiveBusinessError extends CredentialsSignin {
   code = "inactive_business"
 }
 
+class InactiveUserError extends CredentialsSignin {
+  code = "inactive_user"
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
@@ -28,6 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             passwordHash: true,
             businessId: true,
             role: true,
+            isActive: true,
             business: { select: { isActive: true } },
           },
         })
@@ -39,6 +44,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (user.role !== "ADMIN" && !user.business.isActive) {
           throw new InactiveBusinessError()
+        }
+
+        if (user.role !== "ADMIN" && !user.isActive) {
+          throw new InactiveUserError()
         }
 
         return {

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Armchair, Building2, ChevronDown, Scissors } from "lucide-react"
+import { Armchair, Building2, ChevronDown, Scissors, Users } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +27,12 @@ export function NavManageDropdown() {
           <Link href="/service" className="flex items-center gap-2">
             <Scissors className="h-3.5 w-3.5 text-muted-foreground" />
             Servicios
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/user/admin" className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5 text-muted-foreground" />
+            Equipo
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

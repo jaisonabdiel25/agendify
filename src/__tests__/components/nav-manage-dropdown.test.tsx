@@ -25,6 +25,7 @@ describe("NavManageDropdown — abrir menú", () => {
     await user.click(screen.getByText("Gestión"))
     expect(screen.getByText("Puestos")).toBeInTheDocument()
     expect(screen.getByText("Servicios")).toBeInTheDocument()
+    expect(screen.getByText("Equipo")).toBeInTheDocument()
     expect(screen.getByText("Negocio")).toBeInTheDocument()
   })
 
@@ -40,6 +41,13 @@ describe("NavManageDropdown — abrir menú", () => {
     render(<NavManageDropdown />)
     await user.click(screen.getByText("Gestión"))
     expect(screen.getByText("Servicios").closest("a")).toHaveAttribute("href", "/service")
+  })
+
+  it("el ítem Equipo tiene href /user/admin", async () => {
+    const user = userEvent.setup()
+    render(<NavManageDropdown />)
+    await user.click(screen.getByText("Gestión"))
+    expect(screen.getByText("Equipo").closest("a")).toHaveAttribute("href", "/user/admin")
   })
 
   it("el ítem Negocio tiene href /business", async () => {

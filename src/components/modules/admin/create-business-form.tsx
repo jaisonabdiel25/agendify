@@ -93,7 +93,7 @@ export function CreateBusinessForm({ plans }: CreateBusinessFormProps) {
           <SelectTrigger id="planId" aria-invalid={!!errors.planId}>
             <SelectValue placeholder="Selecciona un plan" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {plans.map((plan) => (
               <SelectItem key={plan.id} value={plan.id}>
                 {plan.name}

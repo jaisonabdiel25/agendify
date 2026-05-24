@@ -67,6 +67,7 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole @default(STAFF)
+  isActive     Boolean  @default(false)
   description  String?
   avatarUrl    String?
   createdAt    DateTime @default(now())

@@ -87,6 +87,7 @@ describe("MobileNav — visibilidad condicional por rol", () => {
     render(<MobileNav canManage={true} />)
     expect(screen.getByText("Puestos")).toBeInTheDocument()
     expect(screen.getByText("Servicios")).toBeInTheDocument()
+    expect(screen.getByText("Equipo")).toBeInTheDocument()
     expect(screen.getByText("Negocio")).toBeInTheDocument()
   })
 
@@ -94,6 +95,7 @@ describe("MobileNav — visibilidad condicional por rol", () => {
     render(<MobileNav canManage={false} />)
     expect(screen.queryByText("Puestos")).not.toBeInTheDocument()
     expect(screen.queryByText("Servicios")).not.toBeInTheDocument()
+    expect(screen.queryByText("Equipo")).not.toBeInTheDocument()
     expect(screen.queryByText("Negocio")).not.toBeInTheDocument()
   })
 })
@@ -130,6 +132,11 @@ describe("MobileNav — hrefs de los enlaces", () => {
   it("Servicios apunta a /service", () => {
     render(<MobileNav canManage={true} />)
     expect(screen.getByText("Servicios").closest("a")).toHaveAttribute("href", "/service")
+  })
+
+  it("Equipo apunta a /user/admin", () => {
+    render(<MobileNav canManage={true} />)
+    expect(screen.getByText("Equipo").closest("a")).toHaveAttribute("href", "/user/admin")
   })
 
   it("Negocio apunta a /business", () => {

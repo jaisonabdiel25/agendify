@@ -61,6 +61,20 @@ export async function checkChairLimit(businessId: string): Promise<LimitResult> 
   return { allowed: true }
 }
 
+export async function checkActiveUserLimit(businessId: string): Promise<LimitResult> {
+  const plan = await getBusinessPlan(businessId)
+  if (!plan) return { allowed: false, message: "Negocio sin plan asignado" }
+
+  const activeCount = await prisma.user.count({ where: { businessId, isActive: true } })
+  if (activeCount >= plan.maxUsers) {
+    return {
+      allowed: false,
+      message: `Tu plan ${plan.name} permite hasta ${plan.maxUsers} ${plan.maxUsers === 1 ? "usuario activo" : "usuarios activos"}`,
+    }
+  }
+  return { allowed: true }
+}
+
 export async function checkInviteAllowed(businessId: string): Promise<LimitResult> {
   const plan = await getBusinessPlan(businessId)
   if (!plan) return { allowed: false, message: "Negocio sin plan asignado" }

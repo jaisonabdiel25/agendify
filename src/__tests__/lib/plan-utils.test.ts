@@ -7,7 +7,7 @@ jest.mock("@/lib/prisma", () => ({
   },
 }))
 
-import { checkServiceLimit, checkChairLimit, checkInviteAllowed } from "@/lib/plan-utils"
+import { checkServiceLimit, checkChairLimit, checkInviteAllowed, checkActiveUserLimit } from "@/lib/plan-utils"
 import { prisma } from "@/lib/prisma"
 
 const STANDARD_PLAN = {
@@ -150,5 +150,48 @@ describe("checkInviteAllowed", () => {
     const result = await checkInviteAllowed("biz-1")
     expect(result.allowed).toBe(false)
     expect(result.message).toMatch(/3 usuarios/)
+  })
+})
+
+// ─── checkActiveUserLimit ─────────────────────────────────────────────────────
+
+describe("checkActiveUserLimit", () => {
+  it("retorna not allowed cuando el negocio no tiene plan", async () => {
+    mockPlan(null)
+    const result = await checkActiveUserLimit("biz-1")
+    expect(result.allowed).toBe(false)
+    expect(result.message).toMatch(/sin plan/i)
+  })
+
+  it("retorna allowed cuando hay cupo para más usuarios activos (STANDARD)", async () => {
+    mockPlan(STANDARD_PLAN)
+    jest.mocked(prisma.user.count).mockResolvedValue(0)
+    const result = await checkActiveUserLimit("biz-1")
+    expect(result.allowed).toBe(true)
+  })
+
+  it("retorna not allowed cuando se alcanzó el límite activo (STANDARD: 1)", async () => {
+    mockPlan(STANDARD_PLAN)
+    jest.mocked(prisma.user.count).mockResolvedValue(1)
+    const result = await checkActiveUserLimit("biz-1")
+    expect(result.allowed).toBe(false)
+    expect(result.message).toMatch(/Estándar/i)
+    expect(result.message).toMatch(/1 usuario activo/)
+  })
+
+  it("retorna allowed cuando está por debajo del límite (PRO)", async () => {
+    mockPlan(PRO_PLAN)
+    jest.mocked(prisma.user.count).mockResolvedValue(2)
+    const result = await checkActiveUserLimit("biz-1")
+    expect(result.allowed).toBe(true)
+  })
+
+  it("retorna not allowed cuando alcanza el límite (PRO: 3 usuarios activos)", async () => {
+    mockPlan(PRO_PLAN)
+    jest.mocked(prisma.user.count).mockResolvedValue(3)
+    const result = await checkActiveUserLimit("biz-1")
+    expect(result.allowed).toBe(false)
+    expect(result.message).toMatch(/Pro/i)
+    expect(result.message).toMatch(/3 usuarios activos/)
   })
 })

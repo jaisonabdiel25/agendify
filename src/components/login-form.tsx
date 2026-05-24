@@ -45,6 +45,11 @@ export function LoginForm() {
       return
     }
 
+    if (result?.code === "inactive_user") {
+      setServerError("Tu cuenta no está activa. Contacta al administrador del negocio.")
+      return
+    }
+
     if (result?.error) {
       setServerError("Credenciales incorrectas. Intenta de nuevo.")
       return

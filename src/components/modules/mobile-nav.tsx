@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, CalendarDays, BookOpen, Clock4, BarChart2, Armchair, Scissors, Building2 } from "lucide-react"
+import { Menu, CalendarDays, BookOpen, Clock4, BarChart2, Armchair, Scissors, Building2, Users } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 
@@ -32,6 +32,7 @@ export function MobileNav({ canManage }: MobileNavProps) {
   const manageLinks = [
     { href: "/chair", icon: Armchair, label: "Puestos" },
     { href: "/service", icon: Scissors, label: "Servicios" },
+    { href: "/user/admin", icon: Users, label: "Equipo" },
     { href: "/business", icon: Building2, label: "Negocio" },
   ]
 
