@@ -40,6 +40,8 @@ export interface ChairPoint {
 export interface CustomerRow {
   customerId: string
   name: string
+  email: string | null
+  phone: string | null
   totalBookings: number
   totalSpent: string
 }

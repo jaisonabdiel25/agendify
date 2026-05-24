@@ -22,10 +22,9 @@ import {
   format,
 } from "date-fns"
 import type { BookingEvent, CalendarView, Chair, PositionedEvent } from "@/types/calendar"
+import { GRID_START_HOUR, GRID_END_HOUR, SLOT_HEIGHT_PX } from "@/constant"
 
-export const GRID_START_HOUR = 0
-export const GRID_END_HOUR = 24
-export const SLOT_HEIGHT_PX = 64
+export { GRID_START_HOUR, GRID_END_HOUR, SLOT_HEIGHT_PX }
 
 export function getDateRange(date: Date, view: CalendarView): { from: Date; to: Date } {
   switch (view) {

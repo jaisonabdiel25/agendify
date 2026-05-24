@@ -61,7 +61,7 @@ export default async function BookingPage({
         chair: { select: { id: true, name: true } },
         customer: { select: { id: true, name: true, phone: true } },
       },
-      orderBy: { startTime: "desc" },
+      orderBy: [{ startTime: "desc" }, { status: "desc" }],
       skip,
       take: PAGE_SIZE,
     }),

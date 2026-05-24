@@ -62,7 +62,7 @@ export default async function StatisticsPage({
         customerId: true,
         service: { select: { id: true, name: true, color: true, price: true } },
         chair: { select: { id: true, name: true } },
-        customer: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, email: true, phone: true } },
       },
     }),
     prisma.booking.findMany({
@@ -140,7 +140,7 @@ export default async function StatisticsPage({
     .map(([id, v]) => ({ chairId: id, ...v }))
     .sort((a, b) => b.count - a.count)
 
-  const custMap = new Map<string, { name: string; count: number; spent: number }>()
+  const custMap = new Map<string, { name: string; email: string | null; phone: string | null; count: number; spent: number }>()
   for (const b of bookings) {
     const e = custMap.get(b.customerId)
     const price = nonBillable.includes(b.status as BookingStatus)
@@ -150,13 +150,15 @@ export default async function StatisticsPage({
       e.count++
       e.spent += price
     } else {
-      custMap.set(b.customerId, { name: b.customer.name, count: 1, spent: price })
+      custMap.set(b.customerId, { name: b.customer.name, email: b.customer.email, phone: b.customer.phone, count: 1, spent: price })
     }
   }
   const customerData: CustomerRow[] = [...custMap.entries()]
     .map(([id, v]) => ({
       customerId: id,
       name: v.name,
+      email: v.email,
+      phone: v.phone,
       totalBookings: v.count,
       totalSpent: v.spent.toFixed(2),
     }))

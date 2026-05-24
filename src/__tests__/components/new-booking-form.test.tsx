@@ -250,7 +250,10 @@ async function fillAndSubmit() {
   });
 
   // Nombre
-  await user.type(screen.getByLabelText("Nombre *"), "Maria Garcia");
+  fireEvent.change(screen.getByLabelText("Nombre *"), { target: { value: "Maria Garcia" } });
+
+  // Teléfono
+  fireEvent.change(screen.getByLabelText("Teléfono *"), { target: { value: "61234567" } });
 
   // Submit
   await user.click(
@@ -382,6 +385,22 @@ describe("NewBookingForm — validación", () => {
     await waitFor(() => {
       expect(
         screen.getByText(/nombre debe tener al menos/i),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("muestra error cuando el teléfono no inicia con 6", async () => {
+    const { user } = setup();
+
+    await user.type(screen.getByLabelText("Teléfono *"), "71234567");
+
+    await user.click(
+      screen.getByRole("button", { name: "Crear reserva" }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/teléfono debe iniciar con 6/i),
       ).toBeInTheDocument();
     });
   });

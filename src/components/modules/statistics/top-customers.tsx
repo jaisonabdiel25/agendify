@@ -43,6 +43,12 @@ export function TopCustomers({ data }: TopCustomersProps) {
                     <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs">
                       Cliente
                     </th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs hidden sm:table-cell">
+                      Correo
+                    </th>
+                    <th className="text-left px-4 py-2.5 font-medium text-muted-foreground text-xs hidden sm:table-cell">
+                      Teléfono
+                    </th>
                     <th className="text-right px-4 py-2.5 font-medium text-muted-foreground text-xs">
                       Reservas
                     </th>
@@ -58,6 +64,12 @@ export function TopCustomers({ data }: TopCustomersProps) {
                         {page * PAGE_SIZE + i + 1}
                       </td>
                       <td className="px-4 py-2.5 font-medium text-sm">{row.name}</td>
+                      <td className="px-4 py-2.5 text-sm text-muted-foreground hidden sm:table-cell">
+                        {row.email ?? <span className="text-xs text-muted-foreground/50">—</span>}
+                      </td>
+                      <td className="px-4 py-2.5 text-sm text-muted-foreground hidden sm:table-cell">
+                        {row.phone ?? <span className="text-xs text-muted-foreground/50">—</span>}
+                      </td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-sm">
                         {row.totalBookings}
                       </td>

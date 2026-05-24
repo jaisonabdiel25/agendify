@@ -1,6 +1,7 @@
 "use client"
 
-import { ChevronDown } from "lucide-react"
+import Link from "next/link"
+import { ChevronDown, User } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +39,12 @@ export function UserMenu({ userName, signOutAction }: UserMenuProps) {
         <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
           {userName}
         </DropdownMenuLabel>
+        <DropdownMenuItem asChild>
+          <Link href="/user" className="flex items-center gap-2 cursor-pointer">
+            <User className="h-3.5 w-3.5" />
+            Mi perfil
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <form action={signOutAction} className="w-full">

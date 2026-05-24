@@ -4,9 +4,8 @@ import {
   getEventPosition,
   resolveOverlaps,
   buildTimeSlots,
-  GRID_START_HOUR,
-  SLOT_HEIGHT_PX,
 } from "@/hooks/use-calendar"
+import { GRID_START_HOUR, SLOT_HEIGHT_PX } from "@/constant"
 import type { BookingEvent } from "@/types/calendar"
 
 // Lunes 20 de enero de 2025 (fecha fija para tests de calendario)

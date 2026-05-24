@@ -10,8 +10,7 @@ import { renderHook } from "@testing-library/react"
 import { act } from "@testing-library/react"
 import { signOut } from "next-auth/react"
 import { useInactivityLogout } from "@/hooks/use-inactivity-logout"
-
-const TIMEOUT_MS = 10 * 60 * 1000
+import { INACTIVITY_TIMEOUT_MS } from "@/constant"
 const signOutMock = signOut as jest.Mock
 
 beforeEach(() => {
@@ -52,7 +51,7 @@ describe("useInactivityLogout — temporizador", () => {
     renderHook(() => useInactivityLogout())
 
     act(() => {
-      jest.advanceTimersByTime(TIMEOUT_MS)
+      jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS)
     })
 
     expect(signOutMock).toHaveBeenCalledTimes(1)
@@ -63,7 +62,7 @@ describe("useInactivityLogout — temporizador", () => {
     renderHook(() => useInactivityLogout())
 
     act(() => {
-      jest.advanceTimersByTime(TIMEOUT_MS - 1)
+      jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS - 1)
     })
 
     expect(signOutMock).not.toHaveBeenCalled()
@@ -75,7 +74,7 @@ describe("useInactivityLogout — temporizador", () => {
     unmount()
 
     act(() => {
-      jest.advanceTimersByTime(TIMEOUT_MS)
+      jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS)
     })
 
     expect(signOutMock).not.toHaveBeenCalled()
@@ -88,7 +87,7 @@ describe("useInactivityLogout — reset por actividad", () => {
 
     // Avanzar casi hasta el timeout
     act(() => {
-      jest.advanceTimersByTime(TIMEOUT_MS - 1000)
+      jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS - 1000)
     })
     expect(signOutMock).not.toHaveBeenCalled()
 
@@ -99,7 +98,7 @@ describe("useInactivityLogout — reset por actividad", () => {
 
     // Avanzar otro casi-timeout desde el reset (aún no debe expirar)
     act(() => {
-      jest.advanceTimersByTime(TIMEOUT_MS - 1000)
+      jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS - 1000)
     })
     expect(signOutMock).not.toHaveBeenCalled()
 
@@ -116,7 +115,7 @@ describe("useInactivityLogout — reset por actividad", () => {
       renderHook(() => useInactivityLogout())
 
       act(() => {
-        jest.advanceTimersByTime(TIMEOUT_MS - 1000)
+        jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS - 1000)
       })
 
       act(() => {
@@ -124,7 +123,7 @@ describe("useInactivityLogout — reset por actividad", () => {
       })
 
       act(() => {
-        jest.advanceTimersByTime(TIMEOUT_MS - 1000)
+        jest.advanceTimersByTime(INACTIVITY_TIMEOUT_MS - 1000)
       })
 
       expect(signOutMock).not.toHaveBeenCalled()

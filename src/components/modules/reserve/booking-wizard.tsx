@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { ChevronLeft, Loader2, CheckCircle2 } from "lucide-react"
+import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -42,7 +43,10 @@ const STEPS = ["Negocio", "Puesto", "Servicio", "Fecha y hora", "Tus datos"]
 const contactSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Correo inválido").optional().or(z.literal("")),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .min(1, "El teléfono es requerido")
+    .regex(PHONE_REGEX, PHONE_VALIDATION_MESSAGE),
   notes: z.string().optional(),
 })
 type ContactValues = z.infer<typeof contactSchema>
@@ -461,8 +465,9 @@ export function BookingWizard() {
                 {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone">Teléfono</Label>
-                <Input id="phone" type="tel" autoComplete="tel" {...register("phone")} />
+                <Label htmlFor="phone">Teléfono *</Label>
+                <Input id="phone" type="tel" autoComplete="tel" placeholder="60000000" {...register("phone")} aria-invalid={!!errors.phone} />
+                {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
               </div>
             </div>
 

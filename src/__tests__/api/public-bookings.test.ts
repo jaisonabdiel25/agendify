@@ -11,7 +11,7 @@ const txMock = {
   chair: { findFirst: jest.fn() },
   service: { findFirst: jest.fn() },
   booking: { findFirst: jest.fn(), create: jest.fn() },
-  customer: { upsert: jest.fn(), create: jest.fn() },
+  customer: { upsert: jest.fn(), create: jest.fn(), findFirst: jest.fn() },
 }
 
 const validBody = {
@@ -21,6 +21,7 @@ const validBody = {
   date: "2025-06-15",
   time: "10:00",
   name: "Ana García",
+  phone: "61234567",
 }
 
 const mockBooking = {
@@ -38,6 +39,7 @@ beforeEach(() => {
   txMock.chair.findFirst.mockResolvedValue({ id: "c-1" })
   txMock.service.findFirst.mockResolvedValue({ id: "s-1", durationMinutes: 30 })
   txMock.booking.findFirst.mockResolvedValue(null)
+  txMock.customer.findFirst.mockResolvedValue(null)
   txMock.customer.create.mockResolvedValue({ id: "cust-1" })
   txMock.customer.upsert.mockResolvedValue({ id: "cust-1" })
   txMock.booking.create.mockResolvedValue(mockBooking)
@@ -74,6 +76,26 @@ describe("POST /api/public/bookings — validación", () => {
 
   it("retorna 400 con email inválido", async () => {
     const res = await POST(makeRequest({ ...validBody, email: "no-email" }))
+    expect(res.status).toBe(400)
+  })
+
+  it("retorna 400 con teléfono inválido (no inicia con 6)", async () => {
+    const res = await POST(makeRequest({ ...validBody, phone: "71234567" }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/teléfono/i)
+  })
+
+  it("retorna 400 con teléfono inválido (menos de 8 dígitos)", async () => {
+    const res = await POST(makeRequest({ ...validBody, phone: "612345" }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/teléfono/i)
+  })
+
+  it("retorna 400 sin teléfono", async () => {
+    const { phone: _phone, ...bodyWithoutPhone } = validBody
+    const res = await POST(makeRequest(bodyWithoutPhone))
     expect(res.status).toBe(400)
   })
 

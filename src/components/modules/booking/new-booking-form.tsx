@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
 
 const schema = z.object({
   chairId: z.string().min(1, "Selecciona un puesto"),
@@ -26,7 +27,10 @@ const schema = z.object({
   date: z.string().min(1, "Selecciona una fecha"),
   time: z.string().min(1, "Selecciona una hora"),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .min(1, "El teléfono es requerido")
+    .regex(PHONE_REGEX, PHONE_VALIDATION_MESSAGE),
   email: z.string().email("Correo inválido").optional().or(z.literal("")),
   notes: z.string().optional(),
 })
@@ -292,8 +296,11 @@ export function NewBookingForm({ chairs }: NewBookingFormProps) {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone">Teléfono</Label>
-              <Input id="phone" type="tel" placeholder="+507 6000-0000" {...register("phone")} />
+              <Label htmlFor="phone">Teléfono *</Label>
+              <Input id="phone" type="tel" placeholder="60000000" {...register("phone")} />
+              {errors.phone && (
+                <p className="text-xs text-destructive">{errors.phone.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">

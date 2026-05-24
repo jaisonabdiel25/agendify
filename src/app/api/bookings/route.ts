@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
 
 const querySchema = z.object({
   from: z.string().datetime(),
@@ -16,7 +17,7 @@ const postSchema = z.object({
   time: z.string().regex(/^\d{2}:\d{2}$/, "Hora inválida"),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Correo inválido").optional().or(z.literal("")),
-  phone: z.string().optional(),
+  phone: z.string().regex(PHONE_REGEX, PHONE_VALIDATION_MESSAGE),
   notes: z.string().optional(),
 })
 
@@ -118,12 +119,15 @@ export async function POST(request: Request) {
       if (email) {
         customer = await tx.customer.upsert({
           where: { businessId_email: { businessId, email } },
-          create: { businessId, name, email, phone: phone || null },
-          update: {},
+          create: { businessId, name, email, phone },
+          update: { phone },
         })
       } else {
-        customer = await tx.customer.create({
-          data: { businessId, name, phone: phone || null },
+        const existing = await tx.customer.findFirst({
+          where: { businessId, phone },
+        })
+        customer = existing ?? await tx.customer.create({
+          data: { businessId, name, phone },
         })
       }
 

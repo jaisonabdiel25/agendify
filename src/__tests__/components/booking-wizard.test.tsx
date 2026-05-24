@@ -350,8 +350,8 @@ describe("BookingWizard — Paso 5: Datos personales", () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "booking-123" }) } as Response)
 
     const user = await goToStep5()
-    const nameInput = screen.getByLabelText(/Nombre/i)
-    await user.type(nameInput, "Carlos Pérez")
+    await user.type(screen.getByLabelText(/Nombre/i), "Carlos Pérez")
+    await user.type(screen.getByLabelText(/Teléfono/i), "61234567")
     await user.click(screen.getByRole("button", { name: /Confirmar/i }))
     await waitFor(() => {
       expect(screen.getByText("¡Reserva confirmada!")).toBeInTheDocument()
@@ -367,8 +367,8 @@ describe("BookingWizard — Paso 5: Datos personales", () => {
       .mockResolvedValueOnce({ ok: false, json: async () => ({ error: "Horario no disponible" }) } as Response)
 
     const user = await goToStep5()
-    const nameInput = screen.getByLabelText(/Nombre/i)
-    await user.type(nameInput, "Carlos Pérez")
+    await user.type(screen.getByLabelText(/Nombre/i), "Carlos Pérez")
+    await user.type(screen.getByLabelText(/Teléfono/i), "61234567")
     await user.click(screen.getByRole("button", { name: /Confirmar/i }))
     await waitFor(() => {
       expect(screen.getByText("Horario no disponible")).toBeInTheDocument()
@@ -394,6 +394,7 @@ describe("BookingWizard — Paso 5: Datos personales", () => {
 
     const user = await goToStep5()
     await user.type(screen.getByLabelText(/Nombre/i), "Carlos Pérez")
+    await user.type(screen.getByLabelText(/Teléfono/i), "61234567")
     await user.click(screen.getByRole("button", { name: /Confirmar/i }))
     await waitFor(() => {
       expect(screen.getByText("Error al crear la reserva.")).toBeInTheDocument()
@@ -429,6 +430,7 @@ describe("BookingWizard — Paso 6: Éxito", () => {
     await user.click(screen.getByRole("button", { name: "Continuar" }))
     await waitFor(() => screen.getByLabelText(/Nombre/i))
     await user.type(screen.getByLabelText(/Nombre/i), "Ana García")
+    await user.type(screen.getByLabelText(/Teléfono/i), "61234567")
     await user.click(screen.getByRole("button", { name: /Confirmar/i }))
     await waitFor(() => {
       expect(screen.getByText("REF-XYZ-123")).toBeInTheDocument()
@@ -461,6 +463,7 @@ describe("BookingWizard — Paso 6: Éxito", () => {
     await user.click(screen.getByRole("button", { name: "Continuar" }))
     await waitFor(() => screen.getByLabelText(/Nombre/i))
     await user.type(screen.getByLabelText(/Nombre/i), "Ana García")
+    await user.type(screen.getByLabelText(/Teléfono/i), "61234567")
     await user.click(screen.getByRole("button", { name: /Confirmar/i }))
     await waitFor(() => screen.getByText("¡Reserva confirmada!"))
     await user.click(screen.getByRole("button", { name: "Hacer otra reserva" }))

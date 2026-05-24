@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react"
 import { signOut } from "next-auth/react"
+import { INACTIVITY_TIMEOUT_MS } from "@/constant"
 
-const TIMEOUT_MS = 10 * 60 * 1000
 const EVENTS = ["mousemove", "mousedown", "keydown", "scroll", "touchstart", "click"] as const
 
 export function useInactivityLogout() {
@@ -14,7 +14,7 @@ export function useInactivityLogout() {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
         signOut({ callbackUrl: "/login" })
-      }, TIMEOUT_MS)
+      }, INACTIVITY_TIMEOUT_MS)
     }
 
     reset()

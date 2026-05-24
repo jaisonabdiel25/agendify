@@ -18,7 +18,7 @@ const mockTx = {
   chair: { findFirst: jest.fn() },
   service: { findFirst: jest.fn() },
   booking: { findFirst: jest.fn(), create: jest.fn() },
-  customer: { upsert: jest.fn(), create: jest.fn() },
+  customer: { upsert: jest.fn(), create: jest.fn(), findFirst: jest.fn() },
 }
 
 const mockSession = {
@@ -171,7 +171,7 @@ describe("POST /api/bookings", () => {
     date: "2025-01-20",
     time: "09:00",
     name: "María García",
-    phone: "555-1234",
+    phone: "61234567",
     email: "maria@test.com",
     notes: "",
   }
@@ -193,6 +193,7 @@ describe("POST /api/bookings", () => {
     mockTx.booking.findFirst.mockResolvedValue(null)
     mockTx.customer.upsert.mockResolvedValue({ id: "cust-1" })
     mockTx.customer.create.mockResolvedValue({ id: "cust-1" })
+    mockTx.customer.findFirst.mockResolvedValue(null)
     mockTx.booking.create.mockResolvedValue({
       id: "booking-1",
       startTime: new Date("2025-01-20T09:00:00"),
@@ -231,6 +232,29 @@ describe("POST /api/bookings", () => {
   it("retorna 400 con correo inválido", async () => {
     authMock.mockResolvedValue(mockSession)
     const res = await POST(makePostRequest({ ...validBody, email: "no-es-correo" }))
+    expect(res.status).toBe(400)
+  })
+
+  it("retorna 400 con teléfono inválido (no inicia con 6)", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const res = await POST(makePostRequest({ ...validBody, phone: "71234567" }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/teléfono/i)
+  })
+
+  it("retorna 400 con teléfono inválido (menos de 8 dígitos)", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const res = await POST(makePostRequest({ ...validBody, phone: "612345" }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/teléfono/i)
+  })
+
+  it("retorna 400 sin teléfono", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const { phone: _phone, ...bodyWithoutPhone } = validBody
+    const res = await POST(makePostRequest(bodyWithoutPhone))
     expect(res.status).toBe(400)
   })
 
