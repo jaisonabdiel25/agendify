@@ -5,7 +5,6 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
 import { ServiceTable } from "@/components/modules/service/service-table"
-import { PLAN_LIMITS } from "@/constant"
 
 export default async function ServicePage() {
   const session = await auth()
@@ -28,12 +27,11 @@ export default async function ServicePage() {
     }),
     prisma.business.findUnique({
       where: { id: businessId },
-      select: { plan: { select: { type: true } } },
+      select: { plan: { select: { maxServices: true } } },
     }),
   ])
 
-  const planType = business?.plan?.type ?? "STANDARD"
-  const maxServices = PLAN_LIMITS[planType].maxServices
+  const maxServices = business?.plan?.maxServices ?? 1
   const activeCount = services.filter((s) => s.isActive).length
   const canCreate = activeCount < maxServices
 

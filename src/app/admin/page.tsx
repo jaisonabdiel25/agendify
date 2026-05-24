@@ -53,7 +53,7 @@ export default async function AdminPage({
         id: true,
         name: true,
         _count: { select: { users: true } },
-        plan: { select: { type: true } },
+        plan: { select: { canInvite: true, maxUsers: true } },
       },
     }),
     prisma.invitation.findMany({
@@ -140,7 +140,8 @@ export default async function AdminPage({
               businesses={allBusinesses.map((b) => ({
                 id: b.id,
                 name: b.name,
-                planType: b.plan?.type ?? null,
+                canInvite: b.plan?.canInvite ?? null,
+                maxUsers: b.plan?.maxUsers ?? null,
                 userCount: b._count.users,
               }))}
             />

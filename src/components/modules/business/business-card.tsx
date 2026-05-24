@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { PLAN_LIMITS } from "@/constant"
 import type { PlanType } from "@prisma/client"
 
 const schema = z.object({
@@ -45,6 +44,8 @@ interface Plan {
   id: string
   name: string
   type: PlanType
+  maxUsers: number
+  canInvite: boolean
 }
 
 interface BusinessCardProps {
@@ -64,8 +65,7 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
 }
 
 export function BusinessCard({ business, invitation: initialInvitation, plan, userCount }: BusinessCardProps) {
-  const planLimits = PLAN_LIMITS[plan.type]
-  const isAtUserLimit = planLimits.canInvite && userCount >= planLimits.maxUsers
+  const isAtUserLimit = plan.canInvite && userCount >= plan.maxUsers
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -266,20 +266,20 @@ export function BusinessCard({ business, invitation: initialInvitation, plan, us
         <div className="px-6 py-4 border-b border-border">
           <h2 className="font-medium text-sm">Código de invitación</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {planLimits.canInvite
+            {plan.canInvite
               ? "Comparte este código para que nuevos usuarios se registren en tu negocio."
               : "Tu plan Estándar no permite invitar usuarios adicionales."}
           </p>
         </div>
 
         <div className="px-6 py-5 space-y-4">
-          {planLimits.canInvite ? (
+          {plan.canInvite ? (
             <>
               {isAtUserLimit && (
                 <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                   <p className="text-sm text-amber-600 dark:text-amber-400">
-                    Tu plan Pro permite hasta {planLimits.maxUsers} usuarios. Ya se alcanzó el límite.
+                    Tu plan Pro permite hasta {plan.maxUsers} usuarios. Ya se alcanzó el límite.
                   </p>
                 </div>
               )}

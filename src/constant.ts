@@ -13,22 +13,3 @@ export const PHONE_VALIDATION_MESSAGE = "El teléfono debe iniciar con 6 y tener
 // ─── Inactividad ──────────────────────────────────────────────────────────────
 
 export const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000
-
-// ─── Planes ───────────────────────────────────────────────────────────────────
-
-export const PLAN_LIMITS = {
-  STANDARD: {
-    maxServices: 1,
-    maxChairs: 1,
-    maxUsers: 1,
-    canInvite: false,
-    statisticsCharts: ["status"] as const,
-  },
-  PRO: {
-    maxServices: 2,
-    maxChairs: 3,
-    maxUsers: 3,
-    canInvite: true,
-    statisticsCharts: "all" as const,
-  },
-} as const

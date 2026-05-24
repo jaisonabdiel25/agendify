@@ -22,7 +22,7 @@ export default async function BusinessPage() {
         timezone: true,
         address: true,
         createdAt: true,
-        plan: { select: { id: true, name: true, type: true } },
+        plan: { select: { id: true, name: true, type: true, maxUsers: true, canInvite: true } },
         _count: { select: { users: true } },
       },
     }),

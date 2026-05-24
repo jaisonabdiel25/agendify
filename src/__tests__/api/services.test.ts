@@ -50,7 +50,8 @@ const validServiceBody = {
   isActive: true,
 }
 
-const mockProBusinessPlan = { plan: { type: "PRO" } }
+const mockProBusinessPlan = { plan: { name: "Pro", maxServices: 2, maxChairs: 3, maxUsers: 3, canInvite: true } }
+const mockStandardBusinessPlan = { plan: { name: "Estándar", maxServices: 1, maxChairs: 1, maxUsers: 1, canInvite: false } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -162,7 +163,7 @@ describe("POST /api/services", () => {
   it("retorna 403 cuando plan STANDARD ya tiene 1 servicio activo", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
     jest.mocked(prisma.business.findUnique).mockResolvedValue(
-      { plan: { type: "STANDARD" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+      mockStandardBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
     )
     jest.mocked(prisma.service.count).mockResolvedValue(1)
 
@@ -180,7 +181,7 @@ describe("POST /api/services", () => {
   it("retorna 403 cuando plan PRO ya tiene 2 servicios activos", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
     jest.mocked(prisma.business.findUnique).mockResolvedValue(
-      { plan: { type: "PRO" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+      mockProBusinessPlan as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
     )
     jest.mocked(prisma.service.count).mockResolvedValue(2)
 

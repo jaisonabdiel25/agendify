@@ -26,11 +26,16 @@ enum BookingStatus {
 }
 
 model Plan {
-  id         String     @id @default(cuid())
-  type       PlanType   @unique
-  name       String
-  createdAt  DateTime   @default(now())
-  businesses Business[]
+  id               String     @id @default(cuid())
+  type             PlanType   @unique
+  name             String
+  maxServices      Int
+  maxChairs        Int
+  maxUsers         Int
+  canInvite        Boolean
+  statisticsCharts String[]
+  createdAt        DateTime   @default(now())
+  businesses       Business[]
 }
 
 model Business {

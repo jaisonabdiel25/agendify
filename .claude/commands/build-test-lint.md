@@ -1,12 +1,23 @@
 ---
 name: build-test-lint
-description: ejecuta el build del proyecto, si encuentras fallos corrigelos. ejecuta las test del proyecto con coberturas (pnpm run test:coverage) si alguna falla o la cobertura esta por debajo del lumbral, corrige. Ejecuta el lint del proyecto (pnpm run lint) si falla corrige los errores.
+description: |
+  Valida la calidad del código ejecutando build, tests con cobertura, lint y type-check.
+  Úsalo después de realizar cambios grandes (modificación o creación de más de 8 archivos).
 ---
 
-## Instrucciones
+## Objetivo
+Asegurar que el proyecto compila, los tests pasan con cobertura suficiente, 
+el código cumple las reglas de estilo y no tiene errores de tipos.
 
-1. Ejecuta `pnpm run build`. Si hay errores de compilación, corrígelos.
-2. Ejecuta `pnpm run test:coverage`. Si algún test falla o la cobertura está por debajo del umbral, corrige el código.
-3. Ejecuta `pnpm run lint`. Si hay errores de lint, corrígelos.
+## Pasos
 
-Repite los pasos hasta que los tres pasen sin errores.
+1. `pnpm run type-check` — corrige errores de tipado antes de compilar.
+2. `pnpm run build` — corrige errores de compilación.
+3. `pnpm run test:coverage` — corrige tests fallidos o cobertura por debajo del umbral.
+4. `pnpm run lint` — corrige errores de lint (usa `pnpm run lint:fix` si existe).
+
+## Reglas de corrección
+
+- Corrige solo archivos relacionados con los cambios actuales (`git diff` como referencia).
+- Máximo **3 iteraciones** por paso. Si persiste el error, detente y reporta.
+- No deshabilites reglas de lint (no `eslint-disable`) sin justificación explícita.

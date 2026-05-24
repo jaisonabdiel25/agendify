@@ -26,7 +26,8 @@ const mockStaffSession = {
   expires: "2099-12-31",
 }
 
-const mockProBusiness = { plan: { type: "PRO" } }
+const mockProBusiness = { plan: { name: "Pro", maxServices: 2, maxChairs: 3, maxUsers: 3, canInvite: true } }
+const mockStandardBusiness = { plan: { name: "Estándar", maxServices: 1, maxChairs: 1, maxUsers: 1, canInvite: false } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -48,7 +49,7 @@ describe("POST /api/business/invitation — autorización", () => {
   it("retorna 403 para plan STANDARD (no permite invitaciones)", async () => {
     authMock.mockResolvedValue(mockOwnerSession)
     jest.mocked(prisma.business.findUnique).mockResolvedValue(
-      { plan: { type: "STANDARD" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
+      mockStandardBusiness as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>
     )
     const res = await POST()
     expect(res.status).toBe(403)

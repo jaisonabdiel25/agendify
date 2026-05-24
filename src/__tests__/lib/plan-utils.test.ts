@@ -10,11 +10,27 @@ jest.mock("@/lib/prisma", () => ({
 import { checkServiceLimit, checkChairLimit, checkInviteAllowed } from "@/lib/plan-utils"
 import { prisma } from "@/lib/prisma"
 
-function mockPlanType(type: "STANDARD" | "PRO" | null) {
+const STANDARD_PLAN = {
+  name: "Estándar",
+  maxServices: 1,
+  maxChairs: 1,
+  maxUsers: 1,
+  canInvite: false,
+}
+
+const PRO_PLAN = {
+  name: "Pro",
+  maxServices: 2,
+  maxChairs: 3,
+  maxUsers: 3,
+  canInvite: true,
+}
+
+function mockPlan(plan: typeof STANDARD_PLAN | typeof PRO_PLAN | null) {
   jest.mocked(prisma.business.findUnique).mockResolvedValue(
-    type === null
+    plan === null
       ? null
-      : ({ plan: { type } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      : ({ plan } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
   )
 }
 
@@ -24,21 +40,21 @@ beforeEach(() => jest.clearAllMocks())
 
 describe("checkServiceLimit", () => {
   it("retorna not allowed cuando el negocio no tiene plan", async () => {
-    mockPlanType(null)
+    mockPlan(null)
     const result = await checkServiceLimit("biz-1")
     expect(result.allowed).toBe(false)
     expect(result.message).toMatch(/sin plan/i)
   })
 
   it("retorna allowed cuando está por debajo del límite (STANDARD)", async () => {
-    mockPlanType("STANDARD")
+    mockPlan(STANDARD_PLAN)
     jest.mocked(prisma.service.count).mockResolvedValue(0)
     const result = await checkServiceLimit("biz-1")
     expect(result.allowed).toBe(true)
   })
 
   it("retorna not allowed cuando alcanza el límite (STANDARD: 1)", async () => {
-    mockPlanType("STANDARD")
+    mockPlan(STANDARD_PLAN)
     jest.mocked(prisma.service.count).mockResolvedValue(1)
     const result = await checkServiceLimit("biz-1")
     expect(result.allowed).toBe(false)
@@ -47,14 +63,14 @@ describe("checkServiceLimit", () => {
   })
 
   it("retorna allowed cuando está por debajo del límite (PRO)", async () => {
-    mockPlanType("PRO")
+    mockPlan(PRO_PLAN)
     jest.mocked(prisma.service.count).mockResolvedValue(1)
     const result = await checkServiceLimit("biz-1")
     expect(result.allowed).toBe(true)
   })
 
   it("retorna not allowed cuando alcanza el límite (PRO: 2)", async () => {
-    mockPlanType("PRO")
+    mockPlan(PRO_PLAN)
     jest.mocked(prisma.service.count).mockResolvedValue(2)
     const result = await checkServiceLimit("biz-1")
     expect(result.allowed).toBe(false)
@@ -67,21 +83,21 @@ describe("checkServiceLimit", () => {
 
 describe("checkChairLimit", () => {
   it("retorna not allowed cuando el negocio no tiene plan", async () => {
-    mockPlanType(null)
+    mockPlan(null)
     const result = await checkChairLimit("biz-1")
     expect(result.allowed).toBe(false)
     expect(result.message).toMatch(/sin plan/i)
   })
 
   it("retorna allowed cuando está por debajo del límite (STANDARD)", async () => {
-    mockPlanType("STANDARD")
+    mockPlan(STANDARD_PLAN)
     jest.mocked(prisma.chair.count).mockResolvedValue(0)
     const result = await checkChairLimit("biz-1")
     expect(result.allowed).toBe(true)
   })
 
   it("retorna not allowed cuando alcanza el límite (STANDARD: 1 puesto)", async () => {
-    mockPlanType("STANDARD")
+    mockPlan(STANDARD_PLAN)
     jest.mocked(prisma.chair.count).mockResolvedValue(1)
     const result = await checkChairLimit("biz-1")
     expect(result.allowed).toBe(false)
@@ -89,14 +105,14 @@ describe("checkChairLimit", () => {
   })
 
   it("retorna allowed cuando está por debajo del límite (PRO)", async () => {
-    mockPlanType("PRO")
+    mockPlan(PRO_PLAN)
     jest.mocked(prisma.chair.count).mockResolvedValue(2)
     const result = await checkChairLimit("biz-1")
     expect(result.allowed).toBe(true)
   })
 
   it("retorna not allowed cuando alcanza el límite (PRO: 3 puestos)", async () => {
-    mockPlanType("PRO")
+    mockPlan(PRO_PLAN)
     jest.mocked(prisma.chair.count).mockResolvedValue(3)
     const result = await checkChairLimit("biz-1")
     expect(result.allowed).toBe(false)
@@ -108,28 +124,28 @@ describe("checkChairLimit", () => {
 
 describe("checkInviteAllowed", () => {
   it("retorna not allowed cuando el negocio no tiene plan", async () => {
-    mockPlanType(null)
+    mockPlan(null)
     const result = await checkInviteAllowed("biz-1")
     expect(result.allowed).toBe(false)
     expect(result.message).toMatch(/sin plan/i)
   })
 
   it("retorna not allowed para plan STANDARD (no permite invitaciones)", async () => {
-    mockPlanType("STANDARD")
+    mockPlan(STANDARD_PLAN)
     const result = await checkInviteAllowed("biz-1")
     expect(result.allowed).toBe(false)
     expect(result.message).toMatch(/Estándar/i)
   })
 
   it("retorna allowed para PRO con cupo disponible", async () => {
-    mockPlanType("PRO")
+    mockPlan(PRO_PLAN)
     jest.mocked(prisma.user.count).mockResolvedValue(1)
     const result = await checkInviteAllowed("biz-1")
     expect(result.allowed).toBe(true)
   })
 
   it("retorna not allowed para PRO cuando se alcanzó el límite de usuarios", async () => {
-    mockPlanType("PRO")
+    mockPlan(PRO_PLAN)
     jest.mocked(prisma.user.count).mockResolvedValue(3)
     const result = await checkInviteAllowed("biz-1")
     expect(result.allowed).toBe(false)

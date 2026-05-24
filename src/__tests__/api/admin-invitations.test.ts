@@ -18,7 +18,8 @@ const mockAdminSession = {
   expires: "2099-12-31",
 }
 
-const mockProBusiness = { id: "biz-1", plan: { type: "PRO" } }
+const mockProBusiness = { id: "biz-1", plan: { name: "Pro", maxServices: 2, maxChairs: 3, maxUsers: 3, canInvite: true } }
+const mockStandardBusiness = { plan: { name: "Estándar", maxServices: 1, maxChairs: 1, maxUsers: 1, canInvite: false } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -80,7 +81,7 @@ describe("POST /api/admin/invitations — lógica de negocio", () => {
   it("retorna 403 cuando el negocio tiene plan STANDARD", async () => {
     jest.mocked(prisma.business.findUnique)
       .mockResolvedValueOnce({ id: "biz-1" } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
-      .mockResolvedValueOnce({ plan: { type: "STANDARD" } } as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
+      .mockResolvedValueOnce(mockStandardBusiness as unknown as Awaited<ReturnType<typeof prisma.business.findUnique>>)
     const res = await POST(makeRequest({ businessId: "biz-1" }))
     expect(res.status).toBe(403)
     const body = await res.json()

@@ -8,7 +8,6 @@ import { z } from "zod"
 import { AlertCircle, Check, Copy, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { PLAN_LIMITS } from "@/constant"
 
 const schema = z.object({
   businessId: z.string().min(1, "Selecciona un negocio"),
@@ -19,7 +18,8 @@ type FormValues = z.infer<typeof schema>
 interface Business {
   id: string
   name: string
-  planType: "STANDARD" | "PRO" | null
+  canInvite: boolean | null
+  maxUsers: number | null
   userCount: number
 }
 
@@ -42,11 +42,10 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
 
   const inviteBlockedMessage = (() => {
     if (!selectedBusiness) return null
-    if (!selectedBusiness.planType) return "Este negocio no tiene un plan asignado."
-    const limits = PLAN_LIMITS[selectedBusiness.planType]
-    if (!limits.canInvite) return "El plan Estándar no permite generar invitaciones."
-    if (selectedBusiness.userCount >= limits.maxUsers)
-      return `El plan Pro permite hasta ${limits.maxUsers} usuarios. Ya se alcanzó el límite.`
+    if (selectedBusiness.canInvite === null) return "Este negocio no tiene un plan asignado."
+    if (!selectedBusiness.canInvite) return "El plan Estándar no permite generar invitaciones."
+    if (selectedBusiness.maxUsers !== null && selectedBusiness.userCount >= selectedBusiness.maxUsers)
+      return `El plan Pro permite hasta ${selectedBusiness.maxUsers} usuarios. Ya se alcanzó el límite.`
     return null
   })()
 

@@ -26,16 +26,16 @@ beforeEach(() => {
 })
 
 const businesses = [
-  { id: "biz-1", name: "Mi Barbería", planType: "PRO" as const, userCount: 1 },
-  { id: "biz-2", name: "Salón Elite", planType: "PRO" as const, userCount: 0 },
+  { id: "biz-1", name: "Mi Barbería", canInvite: true, maxUsers: 3, userCount: 1 },
+  { id: "biz-2", name: "Salón Elite", canInvite: true, maxUsers: 3, userCount: 0 },
 ]
 
 const businessesAtLimit = [
-  { id: "biz-3", name: "Barbería Llena", planType: "PRO" as const, userCount: 3 },
+  { id: "biz-3", name: "Barbería Llena", canInvite: true, maxUsers: 3, userCount: 3 },
 ]
 
 const businessesStandard = [
-  { id: "biz-4", name: "Negocio Estándar", planType: "STANDARD" as const, userCount: 1 },
+  { id: "biz-4", name: "Negocio Estándar", canInvite: false, maxUsers: 1, userCount: 1 },
 ]
 
 describe("CreateInvitationForm — renderizado", () => {
@@ -186,7 +186,7 @@ describe("CreateInvitationForm — error del servidor", () => {
 describe("CreateInvitationForm — negocio sin planType", () => {
   it("muestra advertencia cuando el negocio no tiene plan asignado", async () => {
     const user = userEvent.setup()
-    const businessesSinPlan = [{ id: "biz-5", name: "Sin Plan", planType: null, userCount: 0 }]
+    const businessesSinPlan = [{ id: "biz-5", name: "Sin Plan", canInvite: null, maxUsers: null, userCount: 0 }]
     render(<CreateInvitationForm businesses={businessesSinPlan} />)
     await user.selectOptions(screen.getByRole("combobox"), "biz-5")
     expect(screen.getByText(/no tiene un plan asignado/i)).toBeInTheDocument()

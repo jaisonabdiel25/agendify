@@ -5,7 +5,6 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
 import { ChairTable } from "@/components/modules/chair/chair-table"
-import { PLAN_LIMITS } from "@/constant"
 
 export default async function ChairPage() {
   const session = await auth()
@@ -32,12 +31,11 @@ export default async function ChairPage() {
     }),
     prisma.business.findUnique({
       where: { id: businessId },
-      select: { plan: { select: { type: true } } },
+      select: { plan: { select: { maxChairs: true } } },
     }),
   ])
 
-  const planType = business?.plan?.type ?? "STANDARD"
-  const maxChairs = PLAN_LIMITS[planType].maxChairs
+  const maxChairs = business?.plan?.maxChairs ?? 1
   const activeCount = chairs.filter((c) => c.isActive).length
   const canCreate = activeCount < maxChairs
 

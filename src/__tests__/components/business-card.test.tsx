@@ -28,8 +28,8 @@ const invitation = {
   createdAt: "2025-01-15T00:00:00.000Z",
 }
 
-const planPro = { id: "plan_pro_v1", name: "Pro", type: "PRO" as const }
-const planStandard = { id: "plan_standard_v1", name: "Estándar", type: "STANDARD" as const }
+const planPro = { id: "plan_pro_v1", name: "Pro", type: "PRO" as const, maxUsers: 3, canInvite: true }
+const planStandard = { id: "plan_standard_v1", name: "Estándar", type: "STANDARD" as const, maxUsers: 1, canInvite: false }
 
 beforeEach(() => {
   jest.clearAllMocks()
