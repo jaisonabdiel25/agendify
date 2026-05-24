@@ -11,6 +11,8 @@ function makeCustomers(count: number): CustomerRow[] {
   return Array.from({ length: count }, (_, i) => ({
     customerId: `c${i + 1}`,
     name: `Cliente ${i + 1}`,
+    email: null,
+    phone: null,
     totalBookings: count - i,
     totalSpent: ((count - i) * 25).toFixed(2),
   }))
@@ -46,8 +48,8 @@ describe("TopCustomers — renderizado con datos", () => {
   it("muestra el número de reservas de cada cliente", () => {
     // Valores de bookings intencionalmente distintos a los rangos de rank (1, 2)
     const data: CustomerRow[] = [
-      { customerId: "c1", name: "Ana", totalBookings: 7, totalSpent: "175.00" },
-      { customerId: "c2", name: "Luis", totalBookings: 4, totalSpent: "100.00" },
+      { customerId: "c1", name: "Ana", email: null, phone: null, totalBookings: 7, totalSpent: "175.00" },
+      { customerId: "c2", name: "Luis", email: null, phone: null, totalBookings: 4, totalSpent: "100.00" },
     ]
     render(<TopCustomers data={data} />)
     expect(screen.getByText("7")).toBeInTheDocument()

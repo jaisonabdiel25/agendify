@@ -11,6 +11,8 @@ function makeCustomer(i: number): CustomerRow {
   return {
     customerId: `c-${i}`,
     name: `Cliente ${i}`,
+    email: null,
+    phone: null,
     totalBookings: i * 2,
     totalSpent: (i * 50).toFixed(2),
   }
