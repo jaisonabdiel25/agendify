@@ -5,6 +5,33 @@
 jest.mock("next/navigation", () => ({ useRouter: jest.fn() }))
 jest.mock("sonner", () => ({ toast: { success: jest.fn(), error: jest.fn() } }))
 
+// Context-based Select mock: each Select passes its onValueChange to its own SelectItems
+jest.mock("@/components/ui/select", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react") as typeof import("react")
+  type OnChange = ((v: string) => void) | undefined
+  const SelectContext = React.createContext<OnChange>(undefined)
+
+  return {
+    Select: ({ children, onValueChange }: { children: React.ReactNode; onValueChange?: OnChange }) =>
+      React.createElement(SelectContext.Provider, { value: onValueChange }, children),
+    SelectTrigger: ({ children }: { children: React.ReactNode }) =>
+      React.createElement("div", { role: "combobox" }, children),
+    SelectValue: ({ placeholder }: { placeholder?: string }) =>
+      React.createElement("span", null, placeholder),
+    SelectContent: ({ children }: { children: React.ReactNode }) =>
+      React.createElement("div", null, children),
+    SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => {
+      const onChange = React.useContext(SelectContext)
+      return React.createElement(
+        "button",
+        { role: "option", onClick: () => onChange?.(value) },
+        children
+      )
+    },
+  }
+})
+
 import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ChairTable } from "@/components/modules/chair/chair-table"
@@ -158,6 +185,103 @@ describe("ChairTable — diálogo de asignación", () => {
     await user.keyboard("[Escape]")
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    })
+  })
+})
+
+// ──────────────────────────────────────────────────────────
+// Asignación de usuario (handleAssign)
+// ──────────────────────────────────────────────────────────
+describe("ChairTable — asignación de usuario", () => {
+  async function openDialogAndSelectUser() {
+    const user = userEvent.setup()
+    render(<ChairTable chairs={chairs} availableUsers={availableUsers} />)
+    await user.click(screen.getByText(/Sin asignar/i))
+    await user.click(screen.getByRole("option", { name: /Pedro López/ }))
+    return user
+  }
+
+  it("el botón Asignar se habilita tras seleccionar un usuario", async () => {
+    await openDialogAndSelectUser()
+    expect(screen.getByRole("button", { name: "Asignar" })).not.toBeDisabled()
+  })
+
+  it("llama fetch PATCH con el userId seleccionado al confirmar", async () => {
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/chairs/chair-1",
+        expect.objectContaining({
+          method: "PATCH",
+          body: JSON.stringify({ userId: "user-2" }),
+        })
+      )
+    })
+  })
+
+  it("muestra toast.success con el nombre del puesto tras asignación exitosa", async () => {
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith("Usuario asignado a Silla A")
+    })
+  })
+
+  it("llama router.refresh() tras asignación exitosa", async () => {
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1))
+  })
+
+  it("cierra el diálogo tras asignación exitosa", async () => {
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
+  })
+
+  it("muestra toast.error cuando el servidor falla al asignar", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: "Usuario no encontrado" }),
+    } as Response)
+
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith("Usuario no encontrado")
+    })
+  })
+
+  it("no llama router.refresh() cuando el servidor falla", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: "Error" }),
+    } as Response)
+
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => expect(mockToast.error).toHaveBeenCalled())
+    expect(mockRefresh).not.toHaveBeenCalled()
+  })
+
+  it("usa el mensaje genérico cuando el servidor no devuelve error", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({}),
+    } as Response)
+
+    const user = await openDialogAndSelectUser()
+    await user.click(screen.getByRole("button", { name: "Asignar" }))
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith("Error al asignar el usuario")
     })
   })
 })

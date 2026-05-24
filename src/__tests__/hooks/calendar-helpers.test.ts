@@ -125,40 +125,40 @@ describe("navigateDate", () => {
 // getEventPosition
 // ──────────────────────────────────────────────────────────
 describe("getEventPosition", () => {
-  it("evento a las 8:00 tiene top=0 (inicio de grilla)", () => {
-    const { top } = getEventPosition(mkEvent("2025-01-20T08:00:00", "2025-01-20T09:00:00"))
+  it("evento a medianoche tiene top=0 (inicio de grilla)", () => {
+    const { top } = getEventPosition(mkEvent("2025-01-20T00:00:00", "2025-01-20T01:00:00"))
     expect(top).toBe(0)
   })
 
   it("evento de 60 min tiene height=128px (2 slots)", () => {
-    const { height } = getEventPosition(mkEvent("2025-01-20T08:00:00", "2025-01-20T09:00:00"))
+    const { height } = getEventPosition(mkEvent("2025-01-20T00:00:00", "2025-01-20T01:00:00"))
     expect(height).toBe(128)
   })
 
-  it("evento a las 8:30 tiene top=64 (1 slot después del inicio)", () => {
-    const { top } = getEventPosition(mkEvent("2025-01-20T08:30:00", "2025-01-20T09:00:00"))
+  it("evento a las 00:30 tiene top=64 (1 slot después del inicio)", () => {
+    const { top } = getEventPosition(mkEvent("2025-01-20T00:30:00", "2025-01-20T01:00:00"))
     expect(top).toBe(SLOT_HEIGHT_PX)
   })
 
-  it("evento a las 9:00 tiene top=128 (2 slots desde inicio)", () => {
-    const { top } = getEventPosition(mkEvent("2025-01-20T09:00:00", "2025-01-20T10:00:00"))
+  it("evento a la 01:00 tiene top=128 (2 slots desde inicio)", () => {
+    const { top } = getEventPosition(mkEvent("2025-01-20T01:00:00", "2025-01-20T02:00:00"))
     expect(top).toBe(SLOT_HEIGHT_PX * 2)
   })
 
   it("evento muy corto (<30 min) tiene altura mínima de SLOT_HEIGHT/2", () => {
-    const { height } = getEventPosition(mkEvent("2025-01-20T08:00:00", "2025-01-20T08:10:00"))
+    const { height } = getEventPosition(mkEvent("2025-01-20T00:00:00", "2025-01-20T00:10:00"))
     expect(height).toBe(SLOT_HEIGHT_PX / 2)
   })
 
   it("evento de 30 min tiene height=64 (exactamente 1 slot)", () => {
-    const { height } = getEventPosition(mkEvent("2025-01-20T08:00:00", "2025-01-20T08:30:00"))
+    const { height } = getEventPosition(mkEvent("2025-01-20T00:00:00", "2025-01-20T00:30:00"))
     expect(height).toBe(SLOT_HEIGHT_PX)
   })
 
-  it("grilla empieza en hora " + GRID_START_HOUR, () => {
-    // Evento 1h antes del inicio de grilla → offset negativo (no representable pero calculable)
-    const { top } = getEventPosition(mkEvent("2025-01-20T07:00:00", "2025-01-20T08:00:00"))
-    expect(top).toBe(-SLOT_HEIGHT_PX * 2) // -2 slots
+  it("grilla empieza en hora " + GRID_START_HOUR + " — evento a las 8 AM está en el slot 16", () => {
+    // 8 AM = 8h × 2 slots/h × SLOT_HEIGHT_PX desde el inicio de grilla (medianoche)
+    const { top } = getEventPosition(mkEvent("2025-01-20T08:00:00", "2025-01-20T09:00:00"))
+    expect(top).toBe(SLOT_HEIGHT_PX * 16)
   })
 })
 
@@ -211,7 +211,7 @@ describe("resolveOverlaps", () => {
   })
 
   it("incluye top y height calculados en cada evento", () => {
-    const [ev] = resolveOverlaps([mkEvent("2025-01-20T08:00:00", "2025-01-20T09:00:00")])
+    const [ev] = resolveOverlaps([mkEvent("2025-01-20T00:00:00", "2025-01-20T01:00:00")])
     expect(ev.top).toBe(0)
     expect(ev.height).toBe(128)
   })
@@ -221,21 +221,21 @@ describe("resolveOverlaps", () => {
 // buildTimeSlots
 // ──────────────────────────────────────────────────────────
 describe("buildTimeSlots", () => {
-  it("genera 28 slots (14 horas × 2 slots/hora)", () => {
-    expect(buildTimeSlots()).toHaveLength(28)
+  it("genera 48 slots (24 horas × 2 slots/hora)", () => {
+    expect(buildTimeSlots()).toHaveLength(48)
   })
 
-  it("el primer slot es '08:00'", () => {
-    expect(buildTimeSlots()[0]).toBe("08:00")
+  it("el primer slot es '00:00'", () => {
+    expect(buildTimeSlots()[0]).toBe("00:00")
   })
 
-  it("el segundo slot es '08:30'", () => {
-    expect(buildTimeSlots()[1]).toBe("08:30")
+  it("el segundo slot es '00:30'", () => {
+    expect(buildTimeSlots()[1]).toBe("00:30")
   })
 
-  it("el último slot es '21:30'", () => {
+  it("el último slot es '23:30'", () => {
     const slots = buildTimeSlots()
-    expect(slots[slots.length - 1]).toBe("21:30")
+    expect(slots[slots.length - 1]).toBe("23:30")
   })
 
   it("todos los slots tienen formato HH:MM", () => {

@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agendify
 
-## Getting Started
+Plataforma SaaS multi-tenant para gestión de negocios de servicios (barberías, salones, etc.). Permite administrar reservas, equipo, horarios, clientes y estadísticas desde una sola aplicación.
 
-First, run the development server:
+## Stack
+
+- **Framework:** Next.js 16 (App Router) + React 19 + TypeScript
+- **Base de datos:** PostgreSQL con Prisma 7 (`PrismaPg` adapter)
+- **Auth:** NextAuth v5 beta — sesión JWT con roles (OWNER / ADMIN / STAFF)
+- **UI:** Tailwind CSS v4 + shadcn/ui + Lucide React + Recharts
+- **Formularios:** react-hook-form + Zod
+- **Notificaciones:** Sonner
+- **Tests:** Jest + React Testing Library
+
+## Requisitos
+
+- Node.js 20+
+- pnpm
+- PostgreSQL
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Crea un archivo `.env` en la raíz con las siguientes variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/agendify"
+AUTH_SECRET="your-secret-key"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Aplica las migraciones y genera el cliente de Prisma:
 
-## Learn More
+```bash
+pnpm prisma migrate dev
+pnpm prisma generate
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Comandos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev              # servidor de desarrollo en http://localhost:3000
+pnpm build            # build de producción
+pnpm start            # servidor de producción (requiere build previo)
+pnpm lint             # ESLint
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Tests
+pnpm test             # jest en modo watch
+pnpm test:run         # jest una sola vez
+pnpm test:coverage    # jest con reporte de cobertura (umbral: 90%)
 
-## Deploy on Vercel
+# Prisma
+pnpm prisma generate          # regenerar cliente después de cambiar schema
+pnpm prisma migrate dev       # crear y aplicar migración en desarrollo
+pnpm prisma migrate deploy    # aplicar migraciones en producción
+pnpm prisma studio            # UI visual de la base de datos
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Módulos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Ruta | Descripción | Roles |
+|---|---|---|
+| `/` | Landing pública | Público |
+| `/reserve` | Wizard de reserva pública | Público |
+| `/login` / `/register` | Acceso | Público |
+| `/dashboard` | Calendario de reservas | Todos |
+| `/booking` | Tabla de reservas | Todos |
+| `/schedule` | Cronograma de horarios | Todos |
+| `/statistics` | Estadísticas del negocio | OWNER / ADMIN |
+| `/chair` | Gestión de puestos | OWNER / ADMIN |
+| `/service` | Gestión de servicios | OWNER / ADMIN |
+| `/business` | Configuración del negocio | OWNER / ADMIN |
+| `/user` | Perfil de usuario | Todos |
+| `/admin` | Panel de super-admin | Super-admin |
+
+## Modelo de datos
+
+El modelo central es `Business` — todo registro (usuarios, puestos, servicios, clientes, reservas) lleva `businessId` y se filtra siempre por él para garantizar el aislamiento multi-tenant.
+
+```
+Business
+  ├── User (roles: OWNER, ADMIN, STAFF)
+  ├── Chair (puesto de trabajo)
+  │     ├── ChairSchedule (horarios por día)
+  │     └── ChairService (servicios que ofrece)
+  ├── Service (servicio con duración y precio)
+  ├── Customer (cliente del negocio)
+  ├── Booking (reserva con estado: PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW)
+  └── Invitation (código de invitación para registro)
+```

@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
 import {
   BookingsTable,
   type BookingRow,
@@ -86,13 +89,21 @@ export default async function BookingPage({
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="font-display font-light text-3xl">Reservas</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {role === "STAFF"
-            ? "Reservas de tu puesto asignado."
-            : "Gestiona todas las reservas de tu negocio."}
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display font-light text-3xl">Reservas</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {role === "STAFF"
+              ? "Reservas de tu puesto asignado."
+              : "Gestiona todas las reservas de tu negocio."}
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/booking/new">
+            <Plus className="h-4 w-4" />
+            Nueva reserva
+          </Link>
+        </Button>
       </div>
 
       <BookingsTable

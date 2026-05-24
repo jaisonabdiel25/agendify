@@ -55,8 +55,8 @@ describe("useCalendar — inicialización", () => {
     expect(result.current.showOnlyMine).toBe(false)
     expect(result.current.weekDays).toHaveLength(7)
     expect(result.current.timeSlots.length).toBeGreaterThan(0)
-    expect(result.current.GRID_START_HOUR).toBe(8)
-    expect(result.current.GRID_END_HOUR).toBe(22)
+    expect(result.current.GRID_START_HOUR).toBe(0)
+    expect(result.current.GRID_END_HOUR).toBe(24)
     expect(result.current.SLOT_HEIGHT_PX).toBe(64)
   })
 

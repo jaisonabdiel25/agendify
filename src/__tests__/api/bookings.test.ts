@@ -4,14 +4,22 @@ jest.mock("@/lib/prisma", () => ({
     booking: {
       findMany: jest.fn(),
     },
+    $transaction: jest.fn(),
   },
 }))
 
-import { GET } from "@/app/api/bookings/route"
+import { GET, POST } from "@/app/api/bookings/route"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
 const authMock = auth as jest.Mock
+
+const mockTx = {
+  chair: { findFirst: jest.fn() },
+  service: { findFirst: jest.fn() },
+  booking: { findFirst: jest.fn(), create: jest.fn() },
+  customer: { upsert: jest.fn(), create: jest.fn() },
+}
 
 const mockSession = {
   user: { id: "user-1", businessId: "biz-1", role: "OWNER", name: "Dueño", email: "owner@test.com" },
@@ -153,5 +161,131 @@ describe("GET /api/bookings", () => {
     expect(res.status).toBe(200)
     const callArgs = jest.mocked(prisma.booking.findMany).mock.calls[0][0]
     expect(callArgs?.where).toMatchObject({ chair: { userId: "user-1" } })
+  })
+})
+
+describe("POST /api/bookings", () => {
+  const validBody = {
+    chairId: "chair-1",
+    serviceId: "svc-1",
+    date: "2025-01-20",
+    time: "09:00",
+    name: "María García",
+    phone: "555-1234",
+    email: "maria@test.com",
+    notes: "",
+  }
+
+  function makePostRequest(body: unknown) {
+    return new Request("http://localhost/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+  }
+
+  beforeEach(() => {
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof mockTx) => Promise<unknown>) =>
+      fn(mockTx)
+    )
+    mockTx.chair.findFirst.mockResolvedValue({ id: "chair-1" })
+    mockTx.service.findFirst.mockResolvedValue({ id: "svc-1", durationMinutes: 60 })
+    mockTx.booking.findFirst.mockResolvedValue(null)
+    mockTx.customer.upsert.mockResolvedValue({ id: "cust-1" })
+    mockTx.customer.create.mockResolvedValue({ id: "cust-1" })
+    mockTx.booking.create.mockResolvedValue({
+      id: "booking-1",
+      startTime: new Date("2025-01-20T09:00:00"),
+      endTime: new Date("2025-01-20T10:00:00"),
+      status: "PENDING",
+    })
+  })
+
+  it("retorna 401 sin sesión autenticada", async () => {
+    authMock.mockResolvedValue(null)
+    const res = await POST(makePostRequest(validBody))
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body.error).toBe("No autorizado")
+  })
+
+  it("retorna 400 con body JSON inválido", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const req = new Request("http://localhost/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "esto no es json{{{",
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+
+  it("retorna 400 con nombre demasiado corto", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const res = await POST(makePostRequest({ ...validBody, name: "A" }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/nombre/i)
+  })
+
+  it("retorna 400 con correo inválido", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const res = await POST(makePostRequest({ ...validBody, email: "no-es-correo" }))
+    expect(res.status).toBe(400)
+  })
+
+  it("retorna 409 cuando el puesto no existe en el negocio", async () => {
+    authMock.mockResolvedValue(mockSession)
+    mockTx.chair.findFirst.mockResolvedValue(null)
+    const res = await POST(makePostRequest(validBody))
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.error).toBe("Puesto no válido")
+  })
+
+  it("retorna 409 cuando el servicio no existe en el negocio", async () => {
+    authMock.mockResolvedValue(mockSession)
+    mockTx.service.findFirst.mockResolvedValue(null)
+    const res = await POST(makePostRequest(validBody))
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.error).toBe("Servicio no válido")
+  })
+
+  it("retorna 409 cuando hay conflicto de horario", async () => {
+    authMock.mockResolvedValue(mockSession)
+    mockTx.booking.findFirst.mockResolvedValue({ id: "existing-booking" })
+    const res = await POST(makePostRequest(validBody))
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.error).toBe("El horario seleccionado ya no está disponible")
+  })
+
+  it("retorna 201 y hace upsert de cliente cuando se envía email", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const res = await POST(makePostRequest(validBody))
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.id).toBe("booking-1")
+    expect(body.status).toBe("PENDING")
+    expect(mockTx.customer.upsert).toHaveBeenCalledTimes(1)
+    expect(mockTx.customer.create).not.toHaveBeenCalled()
+  })
+
+  it("retorna 201 y crea cliente sin email (sin upsert)", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const { email: _email, ...bodyWithoutEmail } = validBody
+    const res = await POST(makePostRequest(bodyWithoutEmail))
+    expect(res.status).toBe(201)
+    expect(mockTx.customer.create).toHaveBeenCalledTimes(1)
+    expect(mockTx.customer.upsert).not.toHaveBeenCalled()
+  })
+
+  it("retorna 201 y crea cliente cuando email es string vacío", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const res = await POST(makePostRequest({ ...validBody, email: "" }))
+    expect(res.status).toBe(201)
+    expect(mockTx.customer.create).toHaveBeenCalledTimes(1)
+    expect(mockTx.customer.upsert).not.toHaveBeenCalled()
   })
 })

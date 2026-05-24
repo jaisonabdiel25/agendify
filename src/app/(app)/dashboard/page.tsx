@@ -55,6 +55,9 @@ export default async function DashboardPage() {
 
   const initialChairs: Chair[] = chairsRaw;
 
+  console.log({bookings})
+  console.log({initialChairs})
+
   return (
     <div className="h-full flex flex-col p-4">
       <CalendarView

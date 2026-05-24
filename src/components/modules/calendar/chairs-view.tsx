@@ -3,11 +3,9 @@
 import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { BookingEvent } from "./booking-event"
+import { GRID_START_HOUR, GRID_END_HOUR, SLOT_HEIGHT_PX } from "@/hooks/use-calendar"
 import type { Chair, PositionedEvent } from "@/types/calendar"
 
-const GRID_START_HOUR = 0
-const GRID_END_HOUR = 24
-const SLOT_HEIGHT_PX = 64
 const TOTAL_HEIGHT = (GRID_END_HOUR - GRID_START_HOUR) * 2 * SLOT_HEIGHT_PX
 const SCROLL_TO_HOUR = 8
 
@@ -24,7 +22,7 @@ export function ChairsView({ chairs, timeSlots, bookingsForChair, onEventClick }
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = SCROLL_TO_HOUR * 2 * SLOT_HEIGHT_PX
+      scrollRef.current.scrollTop = (SCROLL_TO_HOUR - GRID_START_HOUR) * 2 * SLOT_HEIGHT_PX
     }
   }, [])
 

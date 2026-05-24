@@ -20,7 +20,7 @@ export function NavLinks({ canManage }: NavLinksProps) {
   }
 
   return (
-    <nav className="flex items-center gap-4 sm:gap-5 overflow-x-auto scrollbar-none">
+    <nav className="hidden sm:flex items-center gap-4 sm:gap-5">
       <Link
         href="/dashboard"
         className={`${linkClass("/dashboard")} flex items-center gap-1.5`}
