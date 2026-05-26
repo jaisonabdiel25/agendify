@@ -3,8 +3,18 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { Loader2, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { UserRole } from "@prisma/client"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export interface BusinessUser {
   id: string
@@ -17,9 +27,71 @@ export interface BusinessUser {
 
 interface StaffTableProps {
   users: BusinessUser[]
-  activeCount: number
+  totalCount: number
   maxUsers: number
   currentUserId: string
+  currentUserRole: UserRole
+}
+
+function UnlinkUserButton({ userId, userName }: { userId: string; userName: string }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  async function handleUnlink() {
+    const res = await fetch(`/api/business/users/${userId}`, { method: "DELETE" })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? "Error al desvincular el usuario")
+      setOpen(false)
+      return
+    }
+    toast.success(`${userName} fue desvinculado del negocio`)
+    setOpen(false)
+    startTransition(() => router.refresh())
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        disabled={isPending}
+        aria-label={`Desvincular a ${userName}`}
+        className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 disabled:pointer-events-none"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Desvincular usuario</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas desvincular a{" "}
+              <strong>{userName}</strong> del negocio? Esta acción no se puede
+              deshacer. Podrás invitarlo nuevamente si lo deseas.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleUnlink} disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Desvinculando...
+                </>
+              ) : (
+                "Desvincular"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
 
 function UserActiveSwitch({
@@ -83,7 +155,14 @@ const ROLE_LABEL: Record<UserRole, string> = {
   STAFF: "Staff",
 }
 
-export function StaffTable({ users, activeCount, maxUsers, currentUserId }: StaffTableProps) {
+export function StaffTable({
+  users,
+  totalCount,
+  maxUsers,
+  currentUserId,
+  currentUserRole,
+}: StaffTableProps) {
+  const canManage = currentUserRole === "OWNER" || currentUserRole === "ADMIN"
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -92,13 +171,13 @@ export function StaffTable({ users, activeCount, maxUsers, currentUserId }: Staf
           <span
             className={cn(
               "font-medium",
-              activeCount >= maxUsers ? "text-destructive" : "text-foreground"
+              totalCount >= maxUsers ? "text-destructive" : "text-foreground"
             )}
           >
-            {activeCount}
+            {totalCount}
           </span>
           {" / "}
-          {maxUsers} usuarios activos
+          {maxUsers} usuarios
         </span>
       </div>
 
@@ -116,11 +195,14 @@ export function StaffTable({ users, activeCount, maxUsers, currentUserId }: Staf
               <th className="px-4 py-3 text-left font-medium text-muted-foreground w-16">
                 Activo
               </th>
+              {canManage && <th className="px-4 py-3 w-10" />}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {users.map((user) => {
               const isOwnerSelf = user.role === "OWNER" && user.id === currentUserId
+              const canUnlink =
+                canManage && user.role !== "OWNER" && user.id !== currentUserId
               return (
                 <tr key={user.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3">
@@ -145,6 +227,13 @@ export function StaffTable({ users, activeCount, maxUsers, currentUserId }: Staf
                       disabled={isOwnerSelf}
                     />
                   </td>
+                  {canManage && (
+                    <td className="px-4 py-3">
+                      {canUnlink && (
+                        <UnlinkUserButton userId={user.id} userName={user.name} />
+                      )}
+                    </td>
+                  )}
                 </tr>
               )
             })}

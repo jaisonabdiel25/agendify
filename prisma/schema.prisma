@@ -62,17 +62,18 @@ model Business {
 
 model User {
   id           String   @id @default(cuid())
-  businessId   String
+  businessId   String?
   name         String
   email        String   @unique
   passwordHash String
   role         UserRole @default(STAFF)
   isActive     Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
   description  String?
   avatarUrl    String?
   createdAt    DateTime @default(now())
 
-  business            Business     @relation(fields: [businessId], references: [id])
+  business            Business?    @relation(fields: [businessId], references: [id])
   chair               Chair?
   createdInvitations  Invitation[] @relation("InvitationCreator")
 }

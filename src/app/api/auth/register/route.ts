@@ -62,6 +62,7 @@ export async function POST(request: Request) {
           email,
           passwordHash,
           role: existingOwner ? "STAFF" : "OWNER",
+          isActive: true,
         },
       })
 

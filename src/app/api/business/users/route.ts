@@ -16,7 +16,7 @@ export async function GET() {
   try {
     const [users, activeCount, business] = await Promise.all([
       prisma.user.findMany({
-        where: { businessId },
+        where: { businessId, isDeleted: false },
         select: {
           id: true,
           name: true,
@@ -27,7 +27,7 @@ export async function GET() {
         },
         orderBy: { createdAt: "asc" },
       }),
-      prisma.user.count({ where: { businessId, isActive: true } }),
+      prisma.user.count({ where: { businessId, isActive: true, isDeleted: false } }),
       prisma.business.findUnique({
         where: { id: businessId },
         select: { plan: { select: { maxUsers: true } } },

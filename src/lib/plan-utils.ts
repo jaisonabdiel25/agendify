@@ -65,7 +65,7 @@ export async function checkActiveUserLimit(businessId: string): Promise<LimitRes
   const plan = await getBusinessPlan(businessId)
   if (!plan) return { allowed: false, message: "Negocio sin plan asignado" }
 
-  const activeCount = await prisma.user.count({ where: { businessId, isActive: true } })
+  const activeCount = await prisma.user.count({ where: { businessId, isActive: true, isDeleted: false } })
   if (activeCount >= plan.maxUsers) {
     return {
       allowed: false,
@@ -86,7 +86,7 @@ export async function checkInviteAllowed(businessId: string): Promise<LimitResul
     }
   }
 
-  const userCount = await prisma.user.count({ where: { businessId } })
+  const userCount = await prisma.user.count({ where: { businessId, isDeleted: false } })
   if (userCount >= plan.maxUsers) {
     return {
       allowed: false,

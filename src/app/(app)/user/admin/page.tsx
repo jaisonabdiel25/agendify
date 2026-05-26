@@ -10,11 +10,11 @@ export default async function UserAdminPage() {
     redirect("/dashboard")
   }
 
-  const { businessId, id: currentUserId } = session.user
+  const { businessId, id: currentUserId, role: currentUserRole } = session.user
 
-  const [users, activeCount, business] = await Promise.all([
+  const [users, business] = await Promise.all([
     prisma.user.findMany({
-      where: { businessId },
+      where: { businessId, isDeleted: false },
       select: {
         id: true,
         name: true,
@@ -25,7 +25,6 @@ export default async function UserAdminPage() {
       },
       orderBy: { createdAt: "asc" },
     }),
-    prisma.user.count({ where: { businessId, isActive: true } }),
     prisma.business.findUniqueOrThrow({
       where: { id: businessId },
       select: { plan: { select: { maxUsers: true } } },
@@ -53,9 +52,10 @@ export default async function UserAdminPage() {
       <div className="w-full max-w-3xl mt-8">
         <StaffTable
           users={formattedUsers}
-          activeCount={activeCount}
+          totalCount={users.length}
           maxUsers={business.plan.maxUsers}
           currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
         />
       </div>
     </div>
