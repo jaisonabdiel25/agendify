@@ -15,6 +15,13 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
+function makeRequest(q?: string) {
+  const url = q
+    ? `http://localhost/api/public/businesses?q=${encodeURIComponent(q)}`
+    : "http://localhost/api/public/businesses"
+  return new Request(url)
+}
+
 // ─── GET /api/public/businesses ───────────────────────────────────────────────
 
 describe("GET /api/public/businesses", () => {
@@ -22,7 +29,7 @@ describe("GET /api/public/businesses", () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([
       { id: "biz-1", name: "Peluquería A", slug: "peluqueria-a", address: null },
     ])
-    const res = await getBusinesses()
+    const res = await getBusinesses(makeRequest())
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(1)
@@ -31,15 +38,15 @@ describe("GET /api/public/businesses", () => {
 
   it("retorna array vacío cuando no hay negocios activos", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
-    const res = await getBusinesses()
+    const res = await getBusinesses(makeRequest())
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual([])
   })
 
-  it("filtra solo negocios con isActive: true", async () => {
+  it("filtra solo negocios con isActive: true cuando no hay query", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
-    await getBusinesses()
+    await getBusinesses(makeRequest())
     expect(prisma.business.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { isActive: true } })
     )
@@ -47,10 +54,36 @@ describe("GET /api/public/businesses", () => {
 
   it("ordena los negocios por nombre ascendente", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
-    await getBusinesses()
+    await getBusinesses(makeRequest())
     expect(prisma.business.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ orderBy: { name: "asc" } })
     )
+  })
+
+  it("filtra por nombre cuando se pasa ?q=", async () => {
+    ;(prisma.business.findMany as jest.Mock).mockResolvedValue([
+      { id: "biz-2", name: "Barbería Norte", slug: "barberia-norte", address: null },
+    ])
+    const res = await getBusinesses(makeRequest("Barbería"))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body[0].name).toBe("Barbería Norte")
+    expect(prisma.business.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          isActive: true,
+          name: { contains: "Barbería", mode: "insensitive" },
+        },
+      })
+    )
+  })
+
+  it("retorna array vacío cuando ?q= no encuentra coincidencias", async () => {
+    ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
+    const res = await getBusinesses(makeRequest("xyzinexistente"))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toEqual([])
   })
 })
 

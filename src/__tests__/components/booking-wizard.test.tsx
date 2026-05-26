@@ -485,3 +485,109 @@ describe("BookingWizard — Paso 6: Éxito", () => {
     })
   })
 })
+
+// ─── Con initialBusiness (acceso por URL) ─────────────────────────────────────
+
+describe("BookingWizard — con initialBusiness (acceso por URL)", () => {
+  const fixedBusiness = {
+    id: "biz-1",
+    name: "Barbería Central",
+    slug: "barberia-central",
+    address: "Calle 50, Panamá",
+  }
+
+  beforeEach(() => {
+    mockFetch([chairs])
+  })
+
+  it("muestra el título con el nombre del negocio", async () => {
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    await waitFor(() => {
+      expect(screen.getByText("Reservar en Barbería Central")).toBeInTheDocument()
+    })
+  })
+
+  it("inicia directamente en el paso de puestos (1 / 4)", async () => {
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    await waitFor(() => {
+      expect(screen.getByText(/1 \/ 4/)).toBeInTheDocument()
+    })
+  })
+
+  it("no muestra la selección de negocios", async () => {
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    await waitFor(() => screen.getByText(/1 \/ 4/))
+    expect(screen.queryByText("¿En qué negocio deseas reservar?")).not.toBeInTheDocument()
+  })
+
+  it("no muestra el botón Atrás en el paso de puestos", async () => {
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    await waitFor(() => screen.getByText(/1 \/ 4/))
+    expect(screen.queryByText("Atrás")).not.toBeInTheDocument()
+  })
+
+  it("muestra los puestos disponibles", async () => {
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    await waitFor(() => {
+      expect(screen.getByText("Silla A")).toBeInTheDocument()
+      expect(screen.getByText("Silla B")).toBeInTheDocument()
+    })
+  })
+
+  it("avanza al paso 2 / 4 al seleccionar un puesto", async () => {
+    mockFetch([chairs, services])
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    const user = userEvent.setup()
+    await waitFor(() => screen.getByText("Silla A"))
+    await user.click(screen.getByText("Silla A"))
+    await waitFor(() => {
+      expect(screen.getByText(/2 \/ 4/)).toBeInTheDocument()
+    })
+  })
+
+  it("al hacer Atrás desde el paso de servicios vuelve al paso de puestos (1 / 4)", async () => {
+    mockFetch([chairs, services])
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    const user = userEvent.setup()
+    await waitFor(() => screen.getByText("Silla A"))
+    await user.click(screen.getByText("Silla A"))
+    await waitFor(() => screen.getByText(/2 \/ 4/))
+    await user.click(screen.getByText("Atrás"))
+    await waitFor(() => {
+      expect(screen.getByText(/1 \/ 4/)).toBeInTheDocument()
+    })
+    expect(screen.queryByText("Atrás")).not.toBeInTheDocument()
+  })
+
+  it("al hacer otra reserva desde éxito vuelve al paso 1 / 4 (puestos)", async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => chairs } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => services } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => slots } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ id: "booking-99" }) } as Response)
+      .mockResolvedValueOnce({ ok: true, json: async () => chairs } as Response)
+
+    render(<BookingWizard initialBusiness={fixedBusiness} />)
+    const user = userEvent.setup()
+    await waitFor(() => screen.getByText("Silla A"))
+    await user.click(screen.getByText("Silla A"))
+    await waitFor(() => screen.getByText("Corte clásico"))
+    await user.click(screen.getByText("Corte clásico"))
+    await waitFor(() => screen.getByLabelText("Selecciona una fecha"))
+    fireEvent.change(screen.getByLabelText("Selecciona una fecha"), {
+      target: { value: "2025-06-01" },
+    })
+    await waitFor(() => screen.getByText("9:00 AM"))
+    await user.click(screen.getByText("9:00 AM"))
+    await user.click(screen.getByRole("button", { name: "Continuar" }))
+    await waitFor(() => screen.getByLabelText(/Nombre/i))
+    await user.type(screen.getByLabelText(/Nombre/i), "Pedro López")
+    await user.type(screen.getByLabelText(/Teléfono/i), "61234567")
+    await user.click(screen.getByRole("button", { name: /Confirmar/i }))
+    await waitFor(() => screen.getByText("¡Reserva confirmada!"))
+    await user.click(screen.getByRole("button", { name: "Hacer otra reserva" }))
+    await waitFor(() => {
+      expect(screen.getByText(/1 \/ 4/)).toBeInTheDocument()
+    })
+  })
+})

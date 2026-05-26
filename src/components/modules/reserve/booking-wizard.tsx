@@ -35,9 +35,14 @@ interface Service {
   color: string
 }
 
+interface BookingWizardProps {
+  initialBusiness?: Business
+}
+
 // ─── Step labels ──────────────────────────────────────────────────────────────
 
-const STEPS = ["Negocio", "Puesto", "Servicio", "Fecha y hora", "Tus datos"]
+const STEPS_ALL = ["Negocio", "Puesto", "Servicio", "Fecha y hora", "Tus datos"]
+const STEPS_FIXED = ["Puesto", "Servicio", "Fecha y hora", "Tus datos"]
 
 // ─── Personal info schema ─────────────────────────────────────────────────────
 
@@ -77,10 +82,20 @@ function today() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StepHeader({ step, onBack }: { step: number; onBack: () => void }) {
+function StepHeader({
+  steps,
+  currentIndex,
+  canGoBack,
+  onBack,
+}: {
+  steps: string[]
+  currentIndex: number
+  canGoBack: boolean
+  onBack: () => void
+}) {
   return (
     <div className="mb-6">
-      {step > 1 && (
+      {canGoBack && (
         <button
           onClick={onBack}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
@@ -90,17 +105,17 @@ function StepHeader({ step, onBack }: { step: number; onBack: () => void }) {
         </button>
       )}
       <div className="flex gap-1 mb-3">
-        {STEPS.map((_, i) => (
+        {steps.map((_, i) => (
           <div
             key={i}
             className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${
-              i < step ? "bg-foreground" : "bg-border"
+              i <= currentIndex ? "bg-foreground" : "bg-border"
             }`}
           />
         ))}
       </div>
       <p className="text-[0.65rem] tracking-wider uppercase text-muted-foreground font-medium">
-        {step} / {STEPS.length} — {STEPS[step - 1]}
+        {currentIndex + 1} / {steps.length} — {steps[currentIndex]}
       </p>
     </div>
   )
@@ -156,8 +171,13 @@ function EmptyState({ message }: { message: string }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function BookingWizard() {
-  const [step, setStep] = useState(1)
+export function BookingWizard({ initialBusiness }: BookingWizardProps) {
+  const hasFixedBusiness = !!initialBusiness
+  const steps = hasFixedBusiness ? STEPS_FIXED : STEPS_ALL
+
+  // step 1 = Negocio (solo cuando no hay initialBusiness)
+  // step 2 = Puesto, 3 = Servicio, 4 = Fecha/hora, 5 = Datos, 6 = Éxito
+  const [step, setStep] = useState(hasFixedBusiness ? 2 : 1)
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -166,7 +186,7 @@ export function BookingWizard() {
   const [services, setServices] = useState<Service[]>([])
   const [slots, setSlots] = useState<string[]>([])
 
-  const [business, setBusiness] = useState<Business | null>(null)
+  const [business, setBusiness] = useState<Business | null>(initialBusiness ?? null)
   const [chair, setChair] = useState<Chair | null>(null)
   const [service, setService] = useState<Service | null>(null)
   const [date, setDate] = useState("")
@@ -179,49 +199,78 @@ export function BookingWizard() {
     formState: { errors, isSubmitting },
   } = useForm<ContactValues>({ resolver: zodResolver(contactSchema) })
 
-  // Fetch businesses on mount
+  // Fetch businesses on mount (solo cuando el negocio no viene de la URL)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true)
-    fetch("/api/public/businesses")
-      .then((r) => r.json())
-      .then(setBusinesses)
-      .finally(() => setLoading(false))
+    if (hasFixedBusiness) return
+    async function load() {
+      setLoading(true)
+      try {
+        const data = await fetch("/api/public/businesses").then((r) => r.json())
+        setBusinesses(data)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Fetch chairs when business changes
   useEffect(() => {
     if (!business) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true)
-    fetch(`/api/public/chairs?businessId=${business.id}`)
-      .then((r) => r.json())
-      .then(setChairs)
-      .finally(() => setLoading(false))
+    async function load() {
+      setLoading(true)
+      try {
+        const data = await fetch(`/api/public/chairs?businessId=${business.id}`).then((r) => r.json())
+        setChairs(data)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [business])
 
   // Fetch services when chair changes
   useEffect(() => {
     if (!chair) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true)
-    fetch(`/api/public/services?chairId=${chair.id}`)
-      .then((r) => r.json())
-      .then(setServices)
-      .finally(() => setLoading(false))
+    async function load() {
+      setLoading(true)
+      try {
+        const data = await fetch(`/api/public/services?chairId=${chair.id}`).then((r) => r.json())
+        setServices(data)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [chair])
 
   // Fetch availability when date changes
   useEffect(() => {
     if (!chair || !service || !date) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSlots([])
-    setLoading(true)
-    fetch(`/api/public/availability?chairId=${chair.id}&serviceId=${service.id}&date=${date}`)
-      .then((r) => r.json())
-      .then(setSlots)
-      .finally(() => setLoading(false))
+    async function load() {
+      setSlots([])
+      setLoading(true)
+      try {
+        const data = await fetch(`/api/public/availability?chairId=${chair.id}&serviceId=${service.id}&date=${date}`).then((r) => r.json())
+        setSlots(data)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [chair, service, date])
+
+  // Índice 0-based dentro del array de steps para StepHeader
+  function stepIndex() {
+    return hasFixedBusiness ? step - 2 : step - 1
+  }
+
+  function canGoBack() {
+    if (step === 1) return false
+    if (step === 2 && hasFixedBusiness) return false
+    return true
+  }
 
   function goBack() {
     setServerError(null)
@@ -287,9 +336,14 @@ export function BookingWizard() {
           <Button
             variant="outline"
             onClick={() => {
-              setBusiness(null); setChair(null); setService(null)
+              setChair(null); setService(null)
               setDate(""); setTime(""); setConfirmedBookingId(null)
-              setStep(1)
+              if (hasFixedBusiness) {
+                setStep(2)
+              } else {
+                setBusiness(null)
+                setStep(1)
+              }
             }}
           >
             Hacer otra reserva
@@ -302,16 +356,27 @@ export function BookingWizard() {
   return (
     <div className="w-full max-w-md">
       <div className="mb-8">
-        <h1 className="font-display font-light text-3xl">Reservar cita</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Elige un negocio y agenda tu cita en minutos.
-        </p>
+        {hasFixedBusiness ? (
+          <>
+            <h1 className="font-display font-light text-3xl">Reservar en {business?.name}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Agenda tu cita en minutos.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="font-display font-light text-3xl">Reservar cita</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Elige un negocio y agenda tu cita en minutos.
+            </p>
+          </>
+        )}
       </div>
 
-      {/* ── Step 1: Select business ── */}
-      {step === 1 && (
+      {/* ── Step 1: Select business (solo sin initialBusiness) ── */}
+      {step === 1 && !hasFixedBusiness && (
         <div>
-          <StepHeader step={1} onBack={goBack} />
+          <StepHeader steps={steps} currentIndex={stepIndex()} canGoBack={canGoBack()} onBack={goBack} />
           <h2 className="font-medium mb-4">¿En qué negocio deseas reservar?</h2>
           {loading ? (
             <LoadingState />
@@ -335,7 +400,7 @@ export function BookingWizard() {
       {/* ── Step 2: Select chair ── */}
       {step === 2 && (
         <div>
-          <StepHeader step={2} onBack={goBack} />
+          <StepHeader steps={steps} currentIndex={stepIndex()} canGoBack={canGoBack()} onBack={goBack} />
           <h2 className="font-medium mb-4">¿Con quién deseas atenderte?</h2>
           {loading ? (
             <LoadingState />
@@ -365,7 +430,7 @@ export function BookingWizard() {
       {/* ── Step 3: Select service ── */}
       {step === 3 && (
         <div>
-          <StepHeader step={3} onBack={goBack} />
+          <StepHeader steps={steps} currentIndex={stepIndex()} canGoBack={canGoBack()} onBack={goBack} />
           <h2 className="font-medium mb-4">¿Qué servicio deseas?</h2>
           {loading ? (
             <LoadingState />
@@ -390,7 +455,7 @@ export function BookingWizard() {
       {/* ── Step 4: Select date + time ── */}
       {step === 4 && (
         <div>
-          <StepHeader step={4} onBack={goBack} />
+          <StepHeader steps={steps} currentIndex={stepIndex()} canGoBack={canGoBack()} onBack={goBack} />
           <h2 className="font-medium mb-4">¿Cuándo deseas tu cita?</h2>
 
           <div className="space-y-4">
@@ -446,7 +511,7 @@ export function BookingWizard() {
       {/* ── Step 5: Personal info ── */}
       {step === 5 && (
         <div>
-          <StepHeader step={5} onBack={goBack} />
+          <StepHeader steps={steps} currentIndex={stepIndex()} canGoBack={canGoBack()} onBack={goBack} />
 
           {/* Resumen */}
           <div className="rounded-xl border border-border bg-muted/30 p-4 mb-6 space-y-1 text-sm">

@@ -191,7 +191,7 @@ export function ChairTable({ chairs, availableUsers }: ChairTableProps) {
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar usuario..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" className="z-200">
                   {availableUsers.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
                       {u.name} · {u.email}
