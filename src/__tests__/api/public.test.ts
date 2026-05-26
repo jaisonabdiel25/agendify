@@ -79,13 +79,26 @@ describe("GET /api/public/chairs — lógica", () => {
     expect(body[0].name).toBe("Silla A")
   })
 
-  it("filtra puestos activos del businessId correcto", async () => {
+  it("filtra puestos activos con usuario asignado del businessId correcto", async () => {
     ;(prisma.chair.findMany as jest.Mock).mockResolvedValue([])
     const req = new Request("http://localhost/api/public/chairs?businessId=biz-1")
     await getChairs(req)
     expect(prisma.chair.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { businessId: "biz-1", isActive: true } })
+      expect.objectContaining({
+        where: { businessId: "biz-1", isActive: true, NOT: { userId: null } },
+      })
     )
+  })
+
+  it("no retorna puestos sin usuario asignado", async () => {
+    ;(prisma.chair.findMany as jest.Mock).mockResolvedValue([
+      { id: "c2", name: "Silla B", description: null, avatarUrl: null },
+    ])
+    const req = new Request("http://localhost/api/public/chairs?businessId=biz-1")
+    const res = await getChairs(req)
+    const body = await res.json()
+    expect(body).toHaveLength(1)
+    expect(body[0].id).toBe("c2")
   })
 
   it("retorna array vacío cuando no hay puestos activos", async () => {

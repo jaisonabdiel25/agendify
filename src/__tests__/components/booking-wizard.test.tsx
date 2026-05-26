@@ -15,8 +15,8 @@ const businesses = [
 ]
 
 const chairs = [
-  { id: "chair-1", name: "Silla A", description: "Especialista en cortes clásicos" },
-  { id: "chair-2", name: "Silla B", description: null },
+  { id: "chair-1", name: "Silla A", description: "Especialista en cortes clásicos", user: { name: "Carlos Barber", avatarUrl: null } },
+  { id: "chair-2", name: "Silla B", description: null, user: { name: "María Estilista", avatarUrl: null } },
 ]
 
 const services = [
@@ -109,10 +109,17 @@ describe("BookingWizard — Paso 2: Puestos", () => {
     })
   })
 
-  it("muestra la descripción del puesto cuando existe", async () => {
+  it("muestra el nombre del usuario asignado al puesto", async () => {
     await goToStep2()
     await waitFor(() => {
-      expect(screen.getByText("Especialista en cortes clásicos")).toBeInTheDocument()
+      expect(screen.getByText("Carlos Barber · Especialista en cortes clásicos")).toBeInTheDocument()
+    })
+  })
+
+  it("muestra solo el nombre del usuario cuando el puesto no tiene descripción", async () => {
+    await goToStep2()
+    await waitFor(() => {
+      expect(screen.getByText("María Estilista")).toBeInTheDocument()
     })
   })
 
@@ -328,6 +335,12 @@ describe("BookingWizard — Paso 5: Datos personales", () => {
     mockFetch([businesses, chairs, services, slots])
     await goToStep5()
     expect(screen.getByLabelText(/Nombre/i)).toBeInTheDocument()
+  })
+
+  it("muestra el nombre del profesional en el resumen del paso 5", async () => {
+    mockFetch([businesses, chairs, services, slots])
+    await goToStep5()
+    expect(screen.getByText("Carlos Barber")).toBeInTheDocument()
   })
 
   it("muestra error de validación cuando el nombre es muy corto", async () => {

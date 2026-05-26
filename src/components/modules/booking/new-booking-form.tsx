@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
 import Link from "next/link"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Check, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,6 +41,7 @@ interface Chair {
   id: string
   name: string
   color: string
+  user: { name: string } | null
 }
 
 interface Service {
@@ -157,75 +158,85 @@ export function NewBookingForm({ chairs }: NewBookingFormProps) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Puesto + Servicio */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="chairId">Puesto</Label>
-            <Controller
-              control={control}
-              name="chairId"
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger id="chairId">
-                    <SelectValue placeholder="Selecciona un puesto" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {chairs.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        <span className="flex items-center gap-2">
-                          <span
-                            className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: c.color }}
-                          />
-                          {c.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.chairId && (
-              <p className="text-xs text-destructive">{errors.chairId.message}</p>
+        {/* Puesto */}
+        <div className="space-y-1.5">
+          <Label>Profesional</Label>
+          <Controller
+            control={control}
+            name="chairId"
+            render={({ field }) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {chairs.map((c) => {
+                  const selected = field.value === c.id
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => field.onChange(c.id)}
+                      className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${
+                        selected
+                          ? "border-foreground bg-muted/40 ring-1 ring-foreground"
+                          : "border-border hover:border-foreground/30 hover:bg-muted/20"
+                      }`}
+                    >
+                      <span
+                        className="h-3 w-3 rounded-full shrink-0"
+                        style={{ backgroundColor: c.color }}
+                      />
+                      <span className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-medium leading-tight truncate">{c.name}</span>
+                        {c.user && (
+                          <span className="text-xs text-muted-foreground mt-0.5 truncate">{c.user.name}</span>
+                        )}
+                      </span>
+                      {selected && <Check className="h-3.5 w-3.5 shrink-0 text-foreground" />}
+                    </button>
+                  )
+                })}
+              </div>
             )}
-          </div>
+          />
+          {errors.chairId && (
+            <p className="text-xs text-destructive">{errors.chairId.message}</p>
+          )}
+        </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="serviceId">Servicio</Label>
-            <Controller
-              control={control}
-              name="serviceId"
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!chairId || loadingServices}
-                >
-                  <SelectTrigger id="serviceId">
-                    <SelectValue
-                      placeholder={
-                        loadingServices
-                          ? "Cargando..."
-                          : !chairId
-                          ? "Selecciona un puesto primero"
-                          : "Selecciona un servicio"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    {services.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name} — {s.durationMinutes} min
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.serviceId && (
-              <p className="text-xs text-destructive">{errors.serviceId.message}</p>
+        {/* Servicio */}
+        <div className="space-y-1.5">
+          <Label htmlFor="serviceId">Servicio</Label>
+          <Controller
+            control={control}
+            name="serviceId"
+            render={({ field }) => (
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={!chairId || loadingServices}
+              >
+                <SelectTrigger id="serviceId">
+                  <SelectValue
+                    placeholder={
+                      loadingServices
+                        ? "Cargando..."
+                        : !chairId
+                        ? "Selecciona un profesional primero"
+                        : "Selecciona un servicio"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name} — {s.durationMinutes} min
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-          </div>
+          />
+          {errors.serviceId && (
+            <p className="text-xs text-destructive">{errors.serviceId.message}</p>
+          )}
         </div>
 
         {/* Fecha + Hora */}

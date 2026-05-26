@@ -10,8 +10,14 @@ export async function GET(request: Request) {
   }
 
   const chairs = await prisma.chair.findMany({
-    where: { businessId, isActive: true },
-    select: { id: true, name: true, description: true, avatarUrl: true },
+    where: { businessId, isActive: true, NOT: { userId: null } },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      avatarUrl: true,
+      user: { select: { name: true, avatarUrl: true } },
+    },
     orderBy: { name: "asc" },
   })
 

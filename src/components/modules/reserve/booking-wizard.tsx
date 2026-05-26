@@ -24,6 +24,7 @@ interface Chair {
   id: string
   name: string
   description: string | null
+  user: { name: string; avatarUrl: string | null } | null
 }
 
 interface Service {
@@ -269,7 +270,10 @@ export function BookingWizard() {
           <h1 className="font-display font-light text-3xl sm:text-4xl">¡Reserva confirmada!</h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
             Tu reserva en <strong className="text-foreground">{business?.name}</strong> con{" "}
-            <strong className="text-foreground">{chair?.name}</strong> para{" "}
+            <strong className="text-foreground">
+              {chair?.user ? chair.user.name : chair?.name}
+            </strong>{" "}
+            para{" "}
             <strong className="text-foreground">{service?.name}</strong> el{" "}
             <strong className="text-foreground">{date ? formatDate(date) : ""}</strong> a las{" "}
             <strong className="text-foreground">{time ? formatTime(time) : ""}</strong> ha sido recibida.
@@ -343,7 +347,13 @@ export function BookingWizard() {
                 <SelectionCard
                   key={c.id}
                   title={c.name}
-                  subtitle={c.description}
+                  subtitle={
+                    c.user
+                      ? c.description
+                        ? `${c.user.name} · ${c.description}`
+                        : c.user.name
+                      : c.description
+                  }
                   onClick={() => { setChair(c); setStep(3) }}
                 />
               ))}
@@ -442,6 +452,9 @@ export function BookingWizard() {
           <div className="rounded-xl border border-border bg-muted/30 p-4 mb-6 space-y-1 text-sm">
             <p><span className="text-muted-foreground">Negocio:</span> {business?.name}</p>
             <p><span className="text-muted-foreground">Puesto:</span> {chair?.name}</p>
+            {chair?.user && (
+              <p><span className="text-muted-foreground">Profesional:</span> {chair.user.name}</p>
+            )}
             <p><span className="text-muted-foreground">Servicio:</span> {service?.name}</p>
             <p>
               <span className="text-muted-foreground">Fecha:</span>{" "}

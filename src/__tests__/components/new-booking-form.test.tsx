@@ -137,11 +137,13 @@ const chairs = [
     id: "chair-1",
     name: "Silla A",
     color: "#6366f1",
+    user: null,
   },
   {
     id: "chair-2",
     name: "Silla B",
     color: "#f59e0b",
+    user: null,
   },
 ];
 
@@ -199,8 +201,8 @@ async function fillAndSubmit() {
 
   render(<NewBookingForm chairs={chairs} />);
 
-  // Puesto
-  await user.selectOptions(screen.getByLabelText("Puesto"), "chair-1");
+  // Puesto (ahora son botones con el nombre del puesto)
+  await user.click(screen.getByRole("button", { name: /Silla A/i }));
 
   await waitFor(() => {
     expect(global.fetch).toHaveBeenCalledWith(
@@ -296,7 +298,7 @@ describe("NewBookingForm — renderizado", () => {
   it("muestra labels principales", () => {
     setup();
 
-    expect(screen.getByText("Puesto")).toBeInTheDocument();
+    expect(screen.getByText("Profesional")).toBeInTheDocument();
 
     expect(screen.getByLabelText("Fecha")).toBeInTheDocument();
 
@@ -318,9 +320,7 @@ describe("NewBookingForm — fetch de servicios", () => {
   it("llama a services cuando se selecciona un puesto", async () => {
     const { user } = setup();
 
-    const selects = screen.getAllByRole("combobox");
-
-    await user.selectOptions(selects[0], "chair-1");
+    await user.click(screen.getByRole("button", { name: /Silla A/i }));
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -332,12 +332,10 @@ describe("NewBookingForm — fetch de servicios", () => {
   it("muestra servicios cargados", async () => {
     const { user } = setup();
 
-    const selects = screen.getAllByRole("combobox");
-
-    await user.selectOptions(selects[0], "chair-1");
+    await user.click(screen.getByRole("button", { name: /Silla A/i }));
 
     expect(
-      screen.getByRole("option", { name: "Corte de cabello — 60 min" }),
+      await screen.findByRole("option", { name: "Corte de cabello — 60 min" }),
     ).toBeInTheDocument();
   });
 
@@ -352,11 +350,11 @@ describe("NewBookingForm — disponibilidad", () => {
   it("llama availability cuando los campos están completos", async () => {
     const { user } = setup();
 
-    const selects = screen.getAllByRole("combobox");
+    await user.click(screen.getByRole("button", { name: /Silla A/i }));
 
-    await user.selectOptions(selects[0], "chair-1");
+    const serviceSelect = await screen.findByLabelText("Servicio");
 
-    await user.selectOptions(selects[1], "svc-1");
+    await user.selectOptions(serviceSelect, "svc-1");
 
     fireEvent.change(screen.getByLabelText("Fecha"), {
       target: {

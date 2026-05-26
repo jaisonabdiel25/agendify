@@ -14,9 +14,10 @@ export default async function NewBookingPage() {
     where: {
       businessId,
       isActive: true,
+      NOT: { userId: null },
       ...(isStaff ? { userId } : {}),
     },
-    select: { id: true, name: true, color: true },
+    select: { id: true, name: true, color: true, user: { select: { name: true } } },
     orderBy: { name: "asc" },
   })
 
