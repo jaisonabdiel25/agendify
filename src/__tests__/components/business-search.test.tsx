@@ -9,7 +9,7 @@ jest.mock("next/navigation", () => ({
 const mockPush = jest.fn()
 
 import React from "react"
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { BusinessSearch } from "@/components/modules/reserve/business-search"
 
@@ -54,7 +54,7 @@ describe("BusinessSearch", () => {
   it("no hace fetch cuando el input está vacío", async () => {
     mockFetch(results)
     render(<BusinessSearch />)
-    jest.runAllTimers()
+    act(() => { jest.runAllTimers() })
     expect(global.fetch).not.toHaveBeenCalled()
   })
 
@@ -64,7 +64,7 @@ describe("BusinessSearch", () => {
     render(<BusinessSearch />)
     const input = screen.getByRole("combobox", { name: /buscar negocio/i })
     await user.type(input, "Barber")
-    jest.advanceTimersByTime(300)
+    act(() => { jest.advanceTimersByTime(300) })
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("q=Barber")
@@ -77,7 +77,7 @@ describe("BusinessSearch", () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
     render(<BusinessSearch />)
     await user.type(screen.getByRole("combobox", { name: /buscar negocio/i }), "Barber")
-    jest.advanceTimersByTime(300)
+    act(() => { jest.advanceTimersByTime(300) })
     await waitFor(() => {
       expect(screen.getByText("Barbería Central")).toBeInTheDocument()
       expect(screen.getByText("Salon Luna")).toBeInTheDocument()
@@ -89,7 +89,7 @@ describe("BusinessSearch", () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
     render(<BusinessSearch />)
     await user.type(screen.getByRole("combobox", { name: /buscar negocio/i }), "Barber")
-    jest.advanceTimersByTime(300)
+    act(() => { jest.advanceTimersByTime(300) })
     await waitFor(() => {
       expect(screen.getByText("Calle 50, Panamá")).toBeInTheDocument()
     })
@@ -100,7 +100,7 @@ describe("BusinessSearch", () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
     render(<BusinessSearch />)
     await user.type(screen.getByRole("combobox", { name: /buscar negocio/i }), "xyzinexistente")
-    jest.advanceTimersByTime(300)
+    act(() => { jest.advanceTimersByTime(300) })
     await waitFor(() => {
       expect(screen.getByText(/No encontramos negocios/i)).toBeInTheDocument()
     })
@@ -111,7 +111,7 @@ describe("BusinessSearch", () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime })
     render(<BusinessSearch />)
     await user.type(screen.getByRole("combobox", { name: /buscar negocio/i }), "Barber")
-    jest.advanceTimersByTime(300)
+    act(() => { jest.advanceTimersByTime(300) })
     await waitFor(() => screen.getByText("Barbería Central"))
     await user.click(screen.getByText("Barbería Central"))
     expect(mockPush).toHaveBeenCalledWith("/reserve/barberia-central")

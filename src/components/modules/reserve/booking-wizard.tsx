@@ -218,10 +218,11 @@ export function BookingWizard({ initialBusiness }: BookingWizardProps) {
   // Fetch chairs when business changes
   useEffect(() => {
     if (!business) return
+    const b = business
     async function load() {
       setLoading(true)
       try {
-        const data = await fetch(`/api/public/chairs?businessId=${business.id}`).then((r) => r.json())
+        const data = await fetch(`/api/public/chairs?businessId=${b.id}`).then((r) => r.json())
         setChairs(data)
       } finally {
         setLoading(false)
@@ -233,10 +234,11 @@ export function BookingWizard({ initialBusiness }: BookingWizardProps) {
   // Fetch services when chair changes
   useEffect(() => {
     if (!chair) return
+    const c = chair
     async function load() {
       setLoading(true)
       try {
-        const data = await fetch(`/api/public/services?chairId=${chair.id}`).then((r) => r.json())
+        const data = await fetch(`/api/public/services?chairId=${c.id}`).then((r) => r.json())
         setServices(data)
       } finally {
         setLoading(false)
@@ -248,11 +250,13 @@ export function BookingWizard({ initialBusiness }: BookingWizardProps) {
   // Fetch availability when date changes
   useEffect(() => {
     if (!chair || !service || !date) return
+    const c = chair
+    const s = service
     async function load() {
       setSlots([])
       setLoading(true)
       try {
-        const data = await fetch(`/api/public/availability?chairId=${chair.id}&serviceId=${service.id}&date=${date}`).then((r) => r.json())
+        const data = await fetch(`/api/public/availability?chairId=${c.id}&serviceId=${s.id}&date=${date}`).then((r) => r.json())
         setSlots(data)
       } finally {
         setLoading(false)

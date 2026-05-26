@@ -2,20 +2,20 @@
  * @jest-environment jsdom
  */
 
-jest.mock("next-themes", () => ({
+jest.mock("@/components/theme-provider", () => ({
   useTheme: jest.fn(),
 }))
 
 import { render, screen, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useTheme } from "next-themes"
+import { useTheme } from "@/components/theme-provider"
 
 const useThemeMock = useTheme as jest.Mock
 
 describe("ThemeToggle — antes de montar (SSR)", () => {
   it("muestra el ícono Moon antes de que el componente se monte (estado inicial)", () => {
-    useThemeMock.mockReturnValue({ theme: "light", setTheme: jest.fn() })
+    useThemeMock.mockReturnValue({ resolvedTheme: "light", setTheme: jest.fn() })
     render(<ThemeToggle />)
     expect(screen.getByLabelText("Cambiar tema")).toBeInTheDocument()
   })
@@ -24,7 +24,7 @@ describe("ThemeToggle — antes de montar (SSR)", () => {
 describe("ThemeToggle — tema claro", () => {
   it("muestra el ícono Moon en tema claro (mounted)", async () => {
     const setTheme = jest.fn()
-    useThemeMock.mockReturnValue({ theme: "light", setTheme })
+    useThemeMock.mockReturnValue({ resolvedTheme: "light", setTheme })
     render(<ThemeToggle />)
     await act(async () => {})
     expect(screen.getByLabelText("Cambiar tema")).toBeInTheDocument()
@@ -32,7 +32,7 @@ describe("ThemeToggle — tema claro", () => {
 
   it("cambia a tema oscuro al hacer clic en tema claro", async () => {
     const setTheme = jest.fn()
-    useThemeMock.mockReturnValue({ theme: "light", setTheme })
+    useThemeMock.mockReturnValue({ resolvedTheme: "light", setTheme })
     const user = userEvent.setup()
     render(<ThemeToggle />)
     await act(async () => {})
@@ -44,7 +44,7 @@ describe("ThemeToggle — tema claro", () => {
 describe("ThemeToggle — tema oscuro", () => {
   it("cambia a tema claro al hacer clic en tema oscuro", async () => {
     const setTheme = jest.fn()
-    useThemeMock.mockReturnValue({ theme: "dark", setTheme })
+    useThemeMock.mockReturnValue({ resolvedTheme: "dark", setTheme })
     const user = userEvent.setup()
     render(<ThemeToggle />)
     await act(async () => {})

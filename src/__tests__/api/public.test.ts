@@ -25,36 +25,44 @@ function makeRequest(q?: string) {
 // ─── GET /api/public/businesses ───────────────────────────────────────────────
 
 describe("GET /api/public/businesses", () => {
-  it("retorna 200 con lista de negocios activos", async () => {
+  it("retorna 200 con lista de negocios al buscar", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([
-      { id: "biz-1", name: "Peluquería A", slug: "peluqueria-a", address: null },
+      { id: "biz-1", name: "Peluquería A", slug: "peluqueria-a", address: null, users: [] },
     ])
-    const res = await getBusinesses(makeRequest())
+    const res = await getBusinesses(makeRequest("Peluquería"))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toHaveLength(1)
     expect(body[0].name).toBe("Peluquería A")
   })
 
-  it("retorna array vacío cuando no hay negocios activos", async () => {
-    ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
+  it("retorna array vacío cuando q tiene menos de 3 caracteres", async () => {
+    const res = await getBusinesses(makeRequest("ab"))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toEqual([])
+    expect(prisma.business.findMany).not.toHaveBeenCalled()
+  })
+
+  it("retorna array vacío sin query", async () => {
     const res = await getBusinesses(makeRequest())
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual([])
+    expect(prisma.business.findMany).not.toHaveBeenCalled()
   })
 
-  it("filtra solo negocios con isActive: true cuando no hay query", async () => {
+  it("filtra solo negocios con isActive: true al buscar", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
-    await getBusinesses(makeRequest())
+    await getBusinesses(makeRequest("barber"))
     expect(prisma.business.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { isActive: true } })
+      expect.objectContaining({ where: expect.objectContaining({ isActive: true }) })
     )
   })
 
   it("ordena los negocios por nombre ascendente", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([])
-    await getBusinesses(makeRequest())
+    await getBusinesses(makeRequest("barber"))
     expect(prisma.business.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ orderBy: { name: "asc" } })
     )
@@ -62,7 +70,7 @@ describe("GET /api/public/businesses", () => {
 
   it("filtra por nombre cuando se pasa ?q=", async () => {
     ;(prisma.business.findMany as jest.Mock).mockResolvedValue([
-      { id: "biz-2", name: "Barbería Norte", slug: "barberia-norte", address: null },
+      { id: "biz-2", name: "Barbería Norte", slug: "barberia-norte", address: null, users: [] },
     ])
     const res = await getBusinesses(makeRequest("Barbería"))
     expect(res.status).toBe(200)
@@ -84,6 +92,24 @@ describe("GET /api/public/businesses", () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual([])
+  })
+
+  it("incluye ownerName con el nombre del dueño", async () => {
+    ;(prisma.business.findMany as jest.Mock).mockResolvedValue([
+      { id: "biz-1", name: "Peluquería A", slug: "peluqueria-a", address: null, users: [{ name: "Juan" }] },
+    ])
+    const res = await getBusinesses(makeRequest("Peluquería"))
+    const body = await res.json()
+    expect(body[0].ownerName).toBe("Juan")
+  })
+
+  it("retorna ownerName null cuando no hay dueño asignado", async () => {
+    ;(prisma.business.findMany as jest.Mock).mockResolvedValue([
+      { id: "biz-1", name: "Peluquería A", slug: "peluqueria-a", address: null, users: [] },
+    ])
+    const res = await getBusinesses(makeRequest("Peluquería"))
+    const body = await res.json()
+    expect(body[0].ownerName).toBeNull()
   })
 })
 

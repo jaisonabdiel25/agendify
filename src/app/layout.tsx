@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Fraunces, Geist, Geist_Mono } from "next/font/google"
+import { cookies } from "next/headers"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
@@ -27,24 +28,22 @@ export const metadata: Metadata = {
     "Centraliza tus reservas, equipo y clientes en un solo lugar. Dedícate a lo que importa.",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const isDark = cookieStore.get("agendify-theme")?.value === "dark"
+
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased${isDark ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          storageKey="agendify-theme"
-        >
+        <ThemeProvider defaultTheme="system" storageKey="agendify-theme">
           {children}
           <Toaster richColors position="bottom-right" />
         </ThemeProvider>

@@ -9,6 +9,7 @@ interface Business {
   name: string
   slug: string
   address: string | null
+  ownerName: string | null
 }
 
 function useDebounce(value: string, delay: number) {
@@ -35,7 +36,7 @@ export function BusinessSearch() {
 
   useEffect(() => {
     async function search() {
-      if (!debouncedQuery) {
+      if (debouncedQuery.length < 3) {
         setResults([])
         setSearched(false)
         return
@@ -57,12 +58,12 @@ export function BusinessSearch() {
     router.push(`/reserve/${business.slug}`)
   }
 
-  const showDropdown = query.length > 0
+  const showDropdown = query.length >= 3
 
   return (
     <div className="w-full max-w-xl mx-auto">
       <div className="mb-8 text-center">
-        <h1 className="font-display font-light italic text-4xl sm:text-5xl leading-tight tracking-tight">
+        <h1 className="font-display font-light text-3xl sm:text-4xl leading-[1.05]">
           ¿En qué negocio<br />deseas reservar?
         </h1>
       </div>
@@ -114,23 +115,30 @@ export function BusinessSearch() {
                       role="option"
                       aria-selected="false"
                       onClick={() => handleSelect(business)}
-                      className={`w-full text-left px-5 py-4 hover:bg-muted/50 active:bg-muted transition-colors flex items-start gap-3 ${
+                      className={`w-full text-left px-5 py-4 hover:bg-muted/50 active:bg-muted transition-colors flex items-center gap-3 ${
                         i < results.length - 1 ? "border-b border-border" : ""
                       }`}
                     >
-                      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
                         <span className="text-sm font-semibold text-muted-foreground">
                           {business.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm">{business.name}</p>
-                        {business.address && (
-                          <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                            <MapPin className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{business.address}</span>
-                          </p>
-                        )}
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {business.ownerName && (
+                            <span className="text-xs text-muted-foreground">
+                              {business.ownerName}
+                            </span>
+                          )}
+                          {business.address && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{business.address}</span>
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </button>
                   </li>
@@ -141,7 +149,7 @@ export function BusinessSearch() {
         )}
       </div>
 
-      {!showDropdown && (
+      {!query && (
         <p className="text-center text-sm text-muted-foreground mt-4">
           O accede directamente al link que te compartió el negocio.
         </p>
