@@ -6,11 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum PlanType {
-  STANDARD
-  PRO
-}
-
 enum UserRole {
   OWNER
   ADMIN
@@ -27,13 +22,15 @@ enum BookingStatus {
 
 model Plan {
   id               String     @id @default(cuid())
-  type             PlanType   @unique
+  type             String     @unique
   name             String
   maxServices      Int
   maxChairs        Int
   maxUsers         Int
   canInvite        Boolean
   statisticsCharts String[]
+  price            Decimal?   @db.Decimal(10, 2)
+  discount         Float?
   createdAt        DateTime   @default(now())
   businesses       Business[]
 }

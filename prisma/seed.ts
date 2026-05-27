@@ -20,6 +20,8 @@ async function main() {
       maxUsers: 1,
       canInvite: false,
       statisticsCharts: ["status"],
+      price: 0,
+      discount: null,
     },
     create: {
       id: "plan_standard_v1",
@@ -30,6 +32,8 @@ async function main() {
       maxUsers: 1,
       canInvite: false,
       statisticsCharts: ["status"],
+      price: 0,
+      discount: null,
     },
   })
 
@@ -43,6 +47,8 @@ async function main() {
       maxUsers: 3,
       canInvite: true,
       statisticsCharts: ["*"],
+      price: 29.99,
+      discount: null,
     },
     create: {
       id: "plan_pro_v1",
@@ -53,6 +59,8 @@ async function main() {
       maxUsers: 3,
       canInvite: true,
       statisticsCharts: ["*"],
+      price: 29.99,
+      discount: null,
     },
   })
 

@@ -11,8 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import type { PlanType } from "@prisma/client"
-
 const schema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   phone: z.string().optional(),
@@ -43,7 +41,7 @@ interface Invitation {
 interface Plan {
   id: string
   name: string
-  type: PlanType
+  type: string
   maxUsers: number
   canInvite: boolean
 }

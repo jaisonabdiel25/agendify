@@ -32,12 +32,17 @@ describe("CalendarToolbar — renderizado básico", () => {
     expect(screen.getByRole("button", { name: "Hoy" })).toBeInTheDocument()
   })
 
-  it("muestra los botones de vista", () => {
+  it("muestra los botones de vista sin Equipo cuando canToggle=false", () => {
     render(<CalendarToolbar {...defaultProps} />)
-    expect(screen.getByText("Equipo")).toBeInTheDocument()
+    expect(screen.queryByText("Equipo")).not.toBeInTheDocument()
     expect(screen.getByText("Día")).toBeInTheDocument()
     expect(screen.getByText("Semana")).toBeInTheDocument()
     expect(screen.getByText("Mes")).toBeInTheDocument()
+  })
+
+  it("muestra el botón Equipo cuando canToggle=true", () => {
+    render(<CalendarToolbar {...defaultProps} canToggle />)
+    expect(screen.getByText("Equipo")).toBeInTheDocument()
   })
 
   it("aplica opacity-50 al rangeLabel cuando isLoading=true", () => {
@@ -95,7 +100,7 @@ describe("CalendarToolbar — cambio de vista", () => {
 
   it("llama a onViewChange con 'chairs' al hacer clic en Equipo", async () => {
     const user = userEvent.setup()
-    render(<CalendarToolbar {...defaultProps} />)
+    render(<CalendarToolbar {...defaultProps} canToggle />)
     await user.click(screen.getByText("Equipo"))
     expect(defaultProps.onViewChange).toHaveBeenCalledWith("chairs")
   })

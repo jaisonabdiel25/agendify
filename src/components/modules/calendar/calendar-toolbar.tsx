@@ -86,7 +86,7 @@ export function CalendarToolbar({
 
         {/* Switcher de vista */}
         <div className="flex items-center rounded-md border border-border overflow-hidden">
-          {VIEWS.map(({ value, label }) => (
+          {VIEWS.filter(({ value }) => value !== "chairs" || canToggle).map(({ value, label }) => (
             <button
               key={value}
               onClick={() => onViewChange(value)}
