@@ -13,3 +13,9 @@ export const PHONE_VALIDATION_MESSAGE = "El teléfono debe iniciar con 6 y tener
 // ─── Inactividad ──────────────────────────────────────────────────────────────
 
 export const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000
+
+// ─── Planes ───────────────────────────────────────────────────────────────────
+
+export const PLAN_PRICE_MIN = 0
+export const PLAN_DISCOUNT_MIN = 0
+export const PLAN_DISCOUNT_MAX = 100

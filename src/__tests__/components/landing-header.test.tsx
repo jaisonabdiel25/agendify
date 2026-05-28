@@ -62,10 +62,18 @@ describe("LandingHeader — menú móvil", () => {
     expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
   })
 
-  it("muestra los enlaces Iniciar sesión y Comenzar gratis en el menú móvil", async () => {
+  it("muestra el enlace Comenzar ahora en el menú móvil", async () => {
     const user = userEvent.setup()
     render(<LandingHeader />)
     await user.click(screen.getByLabelText("Abrir menú"))
-    expect(screen.getByText("Comenzar gratis →")).toBeInTheDocument()
+    expect(screen.getByText("Comenzar ahora →")).toBeInTheDocument()
+  })
+
+  it("muestra el enlace Contáctanos en el menú móvil", async () => {
+    const user = userEvent.setup()
+    render(<LandingHeader />)
+    await user.click(screen.getByLabelText("Abrir menú"))
+    const links = screen.getAllByText("Contáctanos")
+    expect(links.length).toBeGreaterThanOrEqual(1)
   })
 })

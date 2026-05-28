@@ -5,6 +5,23 @@ CREATE TYPE "UserRole" AS ENUM ('OWNER', 'ADMIN', 'STAFF');
 CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'NO_SHOW');
 
 -- CreateTable
+CREATE TABLE "Plan" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "maxServices" INTEGER NOT NULL,
+    "maxChairs" INTEGER NOT NULL,
+    "maxUsers" INTEGER NOT NULL,
+    "canInvite" BOOLEAN NOT NULL,
+    "statisticsCharts" TEXT[],
+    "price" DECIMAL(10,2),
+    "discount" DOUBLE PRECISION,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Plan_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Business" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -14,6 +31,7 @@ CREATE TABLE "Business" (
     "timezone" TEXT NOT NULL DEFAULT 'America/Panama',
     "address" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "planId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -23,11 +41,15 @@ CREATE TABLE "Business" (
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "businessId" TEXT NOT NULL,
+    "businessId" TEXT,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
     "role" "UserRole" NOT NULL DEFAULT 'STAFF',
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "description" TEXT,
+    "avatarUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -41,6 +63,7 @@ CREATE TABLE "Chair" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "avatarUrl" TEXT,
+    "color" TEXT NOT NULL DEFAULT '#6366f1',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -97,6 +120,18 @@ CREATE TABLE "Customer" (
 );
 
 -- CreateTable
+CREATE TABLE "Invitation" (
+    "id" TEXT NOT NULL,
+    "businessId" TEXT NOT NULL,
+    "createdById" TEXT,
+    "code" TEXT NOT NULL,
+    "usedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Invitation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Booking" (
     "id" TEXT NOT NULL,
     "businessId" TEXT NOT NULL,
@@ -107,11 +142,15 @@ CREATE TABLE "Booking" (
     "endTime" TIMESTAMP(3) NOT NULL,
     "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
     "notes" TEXT,
+    "paidAmount" DECIMAL(10,2),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Booking_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Plan_type_key" ON "Plan"("type");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Business_slug_key" ON "Business"("slug");
@@ -131,8 +170,14 @@ CREATE UNIQUE INDEX "ChairService_chairId_serviceId_key" ON "ChairService"("chai
 -- CreateIndex
 CREATE UNIQUE INDEX "Customer_businessId_email_key" ON "Customer"("businessId", "email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Invitation_code_key" ON "Invitation"("code");
+
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Business" ADD CONSTRAINT "Business_planId_fkey" FOREIGN KEY ("planId") REFERENCES "Plan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Chair" ADD CONSTRAINT "Chair_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -154,6 +199,12 @@ ALTER TABLE "ChairService" ADD CONSTRAINT "ChairService_serviceId_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "Customer" ADD CONSTRAINT "Customer_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Invitation" ADD CONSTRAINT "Invitation_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Booking" ADD CONSTRAINT "Booking_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

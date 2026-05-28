@@ -21,17 +21,29 @@ export function LandingHeader() {
 
         {/* Desktop nav */}
         <nav className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
-          <a
-            href="#features"
+          <Link
+            href="/#features"
             className="hover:text-foreground transition-colors duration-150"
           >
             Características
-          </a>
+          </Link>
+          <Link
+            href="/#pricing"
+            className="hover:text-foreground transition-colors duration-150"
+          >
+            Precios
+          </Link>
           <Link
             href="/reserve"
             className="hover:text-foreground transition-colors duration-150"
           >
             Reservar cita
+          </Link>
+          <Link
+            href="/contactanos"
+            className="hover:text-foreground transition-colors duration-150"
+          >
+            Contáctanos
           </Link>
         </nav>
 
@@ -63,13 +75,20 @@ export function LandingHeader() {
       {mobileOpen && (
         <div className="sm:hidden border-t border-border/40 bg-background/95 backdrop-blur">
           <div className="max-w-5xl mx-auto px-5 py-4 flex flex-col gap-1">
-            <a
-              href="#features"
+            <Link
+              href="/#features"
               onClick={() => setMobileOpen(false)}
               className="px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
             >
               Características
-            </a>
+            </Link>
+            <Link
+              href="/#pricing"
+              onClick={() => setMobileOpen(false)}
+              className="px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              Precios
+            </Link>
             <Link
               href="/reserve"
               onClick={() => setMobileOpen(false)}
@@ -85,11 +104,18 @@ export function LandingHeader() {
               Iniciar sesión
             </Link>
             <Link
+              href="/contactanos"
+              onClick={() => setMobileOpen(false)}
+              className="px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              Contáctanos
+            </Link>
+            <Link
               href="/register"
               onClick={() => setMobileOpen(false)}
               className="px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted/60 transition-colors"
             >
-              Comenzar gratis →
+              Comenzar ahora →
             </Link>
           </div>
         </div>

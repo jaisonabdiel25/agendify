@@ -6,11 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum PlanType {
-  STANDARD
-  PRO
-}
-
 enum UserRole {
   OWNER
   ADMIN
@@ -26,20 +21,22 @@ enum BookingStatus {
 }
 
 model Plan {
-  id               String     @id @default(cuid())
-  type             PlanType   @unique
+  id               String     @id @default(uuid())
+  type             String     @unique
   name             String
   maxServices      Int
   maxChairs        Int
   maxUsers         Int
   canInvite        Boolean
   statisticsCharts String[]
+  price            Decimal?   @db.Decimal(10, 2)
+  discount         Float?
   createdAt        DateTime   @default(now())
   businesses       Business[]
 }
 
 model Business {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   name      String
   slug      String   @unique
   phone     String?
@@ -61,7 +58,7 @@ model Business {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   businessId   String?
   name         String
   email        String   @unique
@@ -79,7 +76,7 @@ model User {
 }
 
 model Chair {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   businessId  String
   userId      String?  @unique
   name        String
@@ -98,7 +95,7 @@ model Chair {
 }
 
 model ChairSchedule {
-  id        String  @id @default(cuid())
+  id        String  @id @default(uuid())
   chairId   String
   dayOfWeek Int     // 0=domingo … 6=sábado
   openTime  String  // "09:00"
@@ -111,7 +108,7 @@ model ChairSchedule {
 }
 
 model Service {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid())
   businessId      String
   name            String
   description     String?
@@ -127,7 +124,7 @@ model Service {
 }
 
 model ChairService {
-  id        String @id @default(cuid())
+  id        String @id @default(uuid())
   chairId   String
   serviceId String
 
@@ -138,7 +135,7 @@ model ChairService {
 }
 
 model Customer {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   businessId String
   name       String
   email      String?
@@ -152,7 +149,7 @@ model Customer {
 }
 
 model Invitation {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   businessId  String
   createdById String?
   code        String    @unique
@@ -164,7 +161,7 @@ model Invitation {
 }
 
 model Booking {
-  id         String        @id @default(cuid())
+  id         String        @id @default(uuid())
   businessId String
   chairId    String
   serviceId  String

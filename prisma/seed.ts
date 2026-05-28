@@ -11,7 +11,7 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   // ── Planes ────────────────────────────────────────────────────────────────────
   await prisma.plan.upsert({
-    where: { id: "plan_standard_v1" },
+    where: { id: "da734ae5-cbc0-49af-a2d3-b272095c55c9" },
     update: {
       type: "STANDARD",
       name: "Estándar",
@@ -20,9 +20,11 @@ async function main() {
       maxUsers: 1,
       canInvite: false,
       statisticsCharts: ["status"],
+      price: 0,
+      discount: null,
     },
     create: {
-      id: "plan_standard_v1",
+      id: "da734ae5-cbc0-49af-a2d3-b272095c55c9",
       type: "STANDARD",
       name: "Estándar",
       maxServices: 1,
@@ -30,11 +32,13 @@ async function main() {
       maxUsers: 1,
       canInvite: false,
       statisticsCharts: ["status"],
+      price: 6.99,
+      discount: 0,
     },
   })
 
   await prisma.plan.upsert({
-    where: { id: "plan_pro_v1" },
+    where: { id: "b8c9d0e1-f2g3-h4i5-j6k7-l8m9n0o1p2q3" },
     update: {
       type: "PRO",
       name: "Pro",
@@ -43,9 +47,11 @@ async function main() {
       maxUsers: 3,
       canInvite: true,
       statisticsCharts: ["*"],
+      price: 9.99,
+      discount: 0,
     },
     create: {
-      id: "plan_pro_v1",
+      id: "b8c9d0e1-f2g3-h4i5-j6k7-l8m9n0o1p2q3",
       type: "PRO",
       name: "Pro",
       maxServices: 2,
@@ -53,6 +59,8 @@ async function main() {
       maxUsers: 3,
       canInvite: true,
       statisticsCharts: ["*"],
+      price: 29.99,
+      discount: null,
     },
   })
 
@@ -63,10 +71,10 @@ async function main() {
     where: { slug: "system" },
     update: {},
     create: {
-      id: "business_system",
+      id: "5b0693da-f048-46fb-9f89-b13e11ada418",
       name: "Sistema",
       slug: "system",
-      planId: "plan_pro_v1",
+      planId: "da734ae5-cbc0-49af-a2d3-b272095c55c9",
     },
   })
 
