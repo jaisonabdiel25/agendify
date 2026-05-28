@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Info } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { RegisterForm } from "@/components/modules/auth/register-form"
 
@@ -51,6 +52,12 @@ export default function RegisterPage() {
               <p className="text-sm text-muted-foreground mt-2.5">
                 Usa tu código de invitación para crear tu cuenta
               </p>
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground leading-snug">
+                  ¿No tienes un código? Contacta al administrador del negocio para solicitar tu invitación.
+                </p>
+              </div>
             </div>
 
             <RegisterForm />
