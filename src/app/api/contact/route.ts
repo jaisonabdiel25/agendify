@@ -3,8 +3,6 @@ import { z } from "zod"
 import { Resend } from "resend"
 import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 const contactSchema = z.object({
   email: z.string().email("Ingresa un correo válido."),
   phone: z.string().regex(PHONE_REGEX, PHONE_VALIDATION_MESSAGE),
@@ -29,6 +27,7 @@ export async function POST(request: Request) {
     const { email, phone, message } = parsed.data
     const contactEmail = process.env.CONTACT_EMAIL ?? "hola@agendify.app"
 
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: "Agendify <onboarding@resend.dev>",
       to: contactEmail,
