@@ -1,7 +1,8 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowUpRight, AtSign, Mail, MessageCircle, Phone, X } from "lucide-react"
+import { ArrowUpRight, MessageCircle, Phone } from "lucide-react"
 import { LandingHeader } from "@/components/landing-header"
+import { ContactForm } from "@/components/modules/contact/contact-form"
 
 export const metadata: Metadata = {
   title: "Contáctanos — Agendify",
@@ -10,39 +11,18 @@ export const metadata: Metadata = {
 
 const channels = [
   {
-    icon: Mail,
-    label: "Correo electrónico",
-    value: "hola@agendify.app",
-    description: "Respondemos en menos de 24 horas.",
-    href: "mailto:hola@agendify.app",
-  },
-  {
     icon: MessageCircle,
     label: "WhatsApp",
-    value: "+57 300 000 0000",
+    value: "+507 6168-6837",
     description: "Lunes a viernes, 9 am – 6 pm.",
-    href: "https://wa.me/573000000000",
-  },
-  {
-    icon: AtSign,
-    label: "Instagram",
-    value: "@agendify.app",
-    description: "Síguenos para novedades y tips.",
-    href: "https://instagram.com/agendify.app",
-  },
-  {
-    icon: X,
-    label: "Twitter / X",
-    value: "@agendify",
-    description: "Actualizaciones en tiempo real.",
-    href: "https://twitter.com/agendify",
+    href: "https://wa.me/50761686837",
   },
   {
     icon: Phone,
     label: "Teléfono",
-    value: "+57 601 000 0000",
+    value: "+507 6168-6837",
     description: "Soporte directo para planes Pro.",
-    href: "tel:+576010000000",
+    href: "tel:+50761686837",
   },
 ]
 
@@ -98,6 +78,24 @@ export default function ContactPage() {
               </a>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Contact form */}
+      <section className="border-t border-border px-5 sm:px-6 py-16 sm:py-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-10">
+            <span className="inline-block text-[0.6rem] sm:text-[0.65rem] tracking-[0.25em] uppercase text-muted-foreground mb-5 border border-border px-3 py-1.5 rounded-sm">
+              Formulario
+            </span>
+            <h2 className="font-display font-light text-[clamp(1.8rem,4vw,3rem)] leading-tight tracking-tight">
+              Envíanos un mensaje.
+            </h2>
+            <p className="text-muted-foreground text-sm sm:text-base mt-3 max-w-md leading-relaxed">
+              Déjanos tus datos y te responderemos en menos de 24 horas.
+            </p>
+          </div>
+          <ContactForm />
         </div>
       </section>
 

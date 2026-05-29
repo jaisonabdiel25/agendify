@@ -1,10 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#09090b"/>
-  <rect x="6" y="9" width="20" height="17" rx="4" fill="none" stroke="#3f3f46" stroke-width="1.2"/>
-  <rect x="6" y="9" width="20" height="6" rx="4" fill="#18181b"/>
-  <rect x="6" y="13" width="20" height="2" rx="0" fill="#18181b"/>
-  <line x1="11" y1="6" x2="11" y2="12" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
-  <line x1="21" y1="6" x2="21" y2="12" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
-  <path d="M11 19.5 L14.5 23 L21.5 15" stroke="#a78bfa" stroke-width="2.2"
-        stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+<svg width="100%" viewBox="0 0 680 680" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Agendify icon blanco y negro</title>
+  <desc>Ícono de Agendify en blanco, negro y gris sin texto</desc>
+
+  <style>
+    .bg-card { fill: #1a1a1a; }
+    .bg-header { fill: #111111; }
+    .dot { fill: #555555; }
+    .dot-active { fill: #ffffff; }
+    .dot-accent { fill: #aaaaaa; }
+    .bolt { fill: #ffffff; }
+    .ring { fill: none; stroke: #888888; stroke-width: 6; }
+    .peg { fill: #ffffff; }
+    .border { fill: none; stroke: #333333; stroke-width: 3; }
+  </style>
+
+  <rect x="100" y="60" width="480" height="560" rx="64" class="bg-card"/>
+  <rect x="100" y="60" width="480" height="140" rx="64" class="bg-header"/>
+  <rect x="100" y="160" width="480" height="40" class="bg-header"/>
+  <rect x="100" y="60" width="480" height="560" rx="64" class="border"/>
+
+  <rect x="230" y="36" width="32" height="72" rx="16" class="peg"/>
+  <rect x="418" y="36" width="32" height="72" rx="16" class="peg"/>
+
+  <circle cx="200" cy="300" r="14" class="dot"/>
+  <circle cx="270" cy="300" r="14" class="dot"/>
+  <circle cx="340" cy="300" r="14" class="dot-accent"/>
+  <circle cx="410" cy="300" r="14" class="dot"/>
+  <circle cx="480" cy="300" r="14" class="dot"/>
+
+  <circle cx="200" cy="390" r="14" class="dot-active"/>
+  <circle cx="270" cy="390" r="14" class="dot"/>
+  <circle cx="340" cy="390" r="32" fill="#333333"/>
+  <polygon points="355,358 325,398 345,398 325,422 365,378 343,378" class="bolt"/>
+  <circle cx="410" cy="390" r="14" class="dot-active"/>
+  <circle cx="480" cy="390" r="14" class="dot"/>
+
+  <circle cx="200" cy="480" r="14" class="dot"/>
+  <circle cx="270" cy="480" r="14" class="dot-active"/>
+  <circle cx="340" cy="480" r="14" class="dot"/>
+  <circle cx="410" cy="480" r="14" class="dot"/>
+  <circle cx="480" cy="480" r="14" class="dot" opacity="0.3"/>
+
+  <circle cx="340" cy="390" r="46" class="ring" opacity="0.4"/>
 </svg>

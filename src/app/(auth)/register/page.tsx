@@ -89,7 +89,14 @@ export default function RegisterPage() {
               <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2.5">
                 <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground leading-snug">
-                  ¿No tienes un código? Contacta al administrador del negocio para solicitar tu invitación.
+                  ¿No tienes un código?{" "}
+                  <Link
+                    href="/contactanos"
+                    className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
+                  >
+                    Contáctanos
+                  </Link>{" "}
+                  para solicitar tu invitación.
                 </p>
               </div>
             </div>
