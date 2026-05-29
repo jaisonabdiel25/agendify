@@ -107,13 +107,13 @@ export function CreateBusinessForm({ plans }: CreateBusinessFormProps) {
       </div>
 
       {serverError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
           <p className="text-sm text-destructive">{serverError}</p>
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5">
+        <div role="alert" className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2.5">
           <p className="text-sm text-emerald-600 dark:text-emerald-400">Negocio creado correctamente.</p>
         </div>
       )}

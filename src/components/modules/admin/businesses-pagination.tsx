@@ -33,14 +33,16 @@ export function BusinessesPagination({ total, pageSize, currentPage, pageParam =
         <button
           onClick={() => goTo(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-input bg-background text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+          aria-label="Página anterior"
+          className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted transition-colors"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={() => goTo(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-input bg-background text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+          aria-label="Página siguiente"
+          className="inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted transition-colors"
         >
           <ChevronRight className="h-3.5 w-3.5" />
         </button>

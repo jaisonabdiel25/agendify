@@ -22,9 +22,10 @@ import { PLAN_PRICE_MIN, PLAN_DISCOUNT_MIN, PLAN_DISCOUNT_MAX } from "@/constant
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 
-function Toggle({ active, onChange }: { active: boolean; onChange: () => void }) {
+function Toggle({ id, active, onChange }: { id?: string; active: boolean; onChange: () => void }) {
   return (
     <button
+      id={id}
       type="button"
       role="switch"
       aria-checked={active}
@@ -280,14 +281,14 @@ export function PlanFormDialog({ plan, trigger }: PlanFormDialogProps) {
               control={control}
               name="canInvite"
               render={({ field }) => (
-                <Toggle active={field.value} onChange={() => field.onChange(!field.value)} />
+                <Toggle id="canInvite-toggle" active={field.value} onChange={() => field.onChange(!field.value)} />
               )}
             />
-            <Label className="cursor-pointer">Permite invitar usuarios</Label>
+            <Label htmlFor="canInvite-toggle" className="cursor-pointer">Permite invitar usuarios</Label>
           </div>
 
           {serverError && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+            <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
               <p className="text-sm text-destructive">{serverError}</p>
             </div>
           )}

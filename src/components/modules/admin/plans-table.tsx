@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import {
   Select,
@@ -61,7 +62,7 @@ function PlanRow({ business, plans }: { business: BusinessWithPlan; plans: Plan[
       </td>
       <td className="px-3 sm:px-4 py-2.5 sm:py-3">
         <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium ${
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
             business.isActive
               ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
               : "bg-muted text-muted-foreground"
@@ -92,7 +93,14 @@ function PlanRow({ business, plans }: { business: BusinessWithPlan; plans: Plan[
           disabled={!isDirty || saving}
           onClick={handleSave}
         >
-          {saving ? "Guardando..." : "Guardar"}
+          {saving ? (
+            <>
+              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            "Guardar"
+          )}
         </Button>
       </td>
     </tr>
@@ -109,7 +117,7 @@ export function PlansTable({ businesses, plans }: PlansTableProps) {
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[28rem]">
+        <table className="w-full text-sm min-w-md">
           <thead>
             <tr className="border-b border-border bg-muted/40">
               <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">Negocio</th>

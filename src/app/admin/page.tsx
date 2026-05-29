@@ -86,20 +86,20 @@ export default async function AdminPage({
   )
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <nav aria-label="Navegación de admin" className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link href="/" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
               Agendify
             </Link>
-            <span className="text-muted-foreground/40 shrink-0">·</span>
-            <span className="text-sm text-muted-foreground truncate">Panel Admin</span>
-            <span className="text-muted-foreground/40 shrink-0">·</span>
+            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+            <span className="text-sm text-muted-foreground truncate" aria-current="page">Panel Admin</span>
+            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
             <Link href="/admin/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
               Planes
             </Link>
-          </div>
+          </nav>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <form action={async () => {
               "use server"
@@ -180,7 +180,7 @@ export default async function AdminPage({
                         </td>
                         <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                           <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium ${
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                               b.isActive
                                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 : "bg-muted text-muted-foreground"
@@ -241,7 +241,7 @@ export default async function AdminPage({
                         </td>
                         <td className="px-3 sm:px-4 py-2.5 sm:py-3">
                           <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium ${
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                               inv.usedAt
                                 ? "bg-muted text-muted-foreground"
                                 : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"

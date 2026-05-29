@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { auth } from "@/auth"
+import { Check, X } from "lucide-react"
+import { auth, signOut } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { PlansTable } from "@/components/modules/admin/plans-table"
 import { PlanFormDialog } from "@/components/modules/admin/plan-form-dialog"
 import { Button } from "@/components/ui/button"
@@ -49,18 +51,34 @@ export default async function AdminPlansPage() {
   }))
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-3 sm:py-4">
-        <div className="max-w-5xl mx-auto flex items-center gap-2 sm:gap-3 min-w-0">
-          <Link href="/admin" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
-            Agendify
-          </Link>
-          <span className="text-muted-foreground/40 shrink-0">·</span>
-          <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Panel Admin
-          </Link>
-          <span className="text-muted-foreground/40 shrink-0">·</span>
-          <span className="text-sm truncate">Planes</span>
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+          <nav aria-label="Navegación de admin" className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Link href="/" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
+              Agendify
+            </Link>
+            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+            <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
+              Panel Admin
+            </Link>
+            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+            <span className="text-sm truncate" aria-current="page">Planes</span>
+          </nav>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <form action={async () => {
+              "use server"
+              await signOut({ redirectTo: "/login" })
+            }}>
+              <button
+                type="submit"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cerrar sesión
+              </button>
+            </form>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -79,49 +97,64 @@ export default async function AdminPlansPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {serializedPlans.map((plan) => (
-              <div key={plan.id} className="border border-border rounded-lg p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-sm">{plan.name}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{plan.type}</p>
+              <div key={plan.id} className="border border-border rounded-xl p-5 space-y-4 bg-card">
+                {/* Header de la card */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-base">{plan.name}</p>
+                    <span className="inline-block font-mono text-[0.65rem] tracking-widest uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                      {plan.type}
+                    </span>
                   </div>
                   <PlanFormDialog plan={plan} />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-md bg-muted/40 px-2 py-1.5">
-                    <p className="text-xs text-muted-foreground">Servicios</p>
-                    <p className="text-sm font-medium">{plan.maxServices}</p>
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-muted/50 px-3 py-2.5 text-center">
+                    <p className="text-[0.7rem] text-muted-foreground mb-0.5">Servicios</p>
+                    <p className="text-lg font-semibold tabular-nums">{plan.maxServices}</p>
                   </div>
-                  <div className="rounded-md bg-muted/40 px-2 py-1.5">
-                    <p className="text-xs text-muted-foreground">Puestos</p>
-                    <p className="text-sm font-medium">{plan.maxChairs}</p>
+                  <div className="rounded-lg bg-muted/50 px-3 py-2.5 text-center">
+                    <p className="text-[0.7rem] text-muted-foreground mb-0.5">Puestos</p>
+                    <p className="text-lg font-semibold tabular-nums">{plan.maxChairs}</p>
                   </div>
-                  <div className="rounded-md bg-muted/40 px-2 py-1.5">
-                    <p className="text-xs text-muted-foreground">Usuarios</p>
-                    <p className="text-sm font-medium">{plan.maxUsers}</p>
+                  <div className="rounded-lg bg-muted/50 px-3 py-2.5 text-center">
+                    <p className="text-[0.7rem] text-muted-foreground mb-0.5">Usuarios</p>
+                    <p className="text-lg font-semibold tabular-nums">{plan.maxUsers}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    Precio:{" "}
-                    <span className="font-medium text-foreground">
+                {/* Precio, descuento e invitaciones */}
+                <div className="border-t border-border pt-3 grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Precio</p>
+                    <p className="text-sm font-medium tabular-nums">
                       {plan.price !== null ? `$${Number(plan.price).toFixed(2)}` : "—"}
-                    </span>
-                  </span>
-                  <span>
-                    Descuento:{" "}
-                    <span className="font-medium text-foreground">
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Descuento</p>
+                    <p className="text-sm font-medium tabular-nums">
                       {plan.discount !== null ? `${plan.discount}%` : "—"}
-                    </span>
-                  </span>
-                  <span>
-                    Invitaciones:{" "}
-                    <span className={`font-medium ${plan.canInvite ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-                      {plan.canInvite ? "Sí" : "No"}
-                    </span>
-                  </span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-0.5">Invitaciones</p>
+                    <div className="flex justify-center">
+                      {plan.canInvite ? (
+                        <Check
+                          className="h-4 w-4 text-emerald-500"
+                          aria-label="Permite invitaciones"
+                        />
+                      ) : (
+                        <X
+                          className="h-4 w-4 text-muted-foreground"
+                          aria-label="No permite invitaciones"
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

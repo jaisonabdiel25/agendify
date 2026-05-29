@@ -37,7 +37,8 @@ export function BusinessesSearch() {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Buscar negocio..."
-        className="h-8 w-full sm:w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        aria-label="Buscar negocio"
+        className="h-9 w-full sm:w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       />
     </div>
   )

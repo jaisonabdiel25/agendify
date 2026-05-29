@@ -151,3 +151,12 @@
     opacity: 1;
   }
 }
+
+.bg-dot-pattern {
+  background-image: radial-gradient(circle, oklch(0 0 0 / 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(circle, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+}

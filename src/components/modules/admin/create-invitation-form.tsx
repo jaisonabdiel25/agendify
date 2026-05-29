@@ -8,6 +8,13 @@ import { z } from "zod"
 import { AlertCircle, Check, Copy, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const schema = z.object({
   businessId: z.string().min(1, "Selecciona un negocio"),
@@ -30,10 +37,10 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
   const [copied, setCopied] = useState(false)
 
   const {
-    register,
     handleSubmit,
-    reset,
+    setValue,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
@@ -81,39 +88,45 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="businessId">Negocio</Label>
-        <select
-          id="businessId"
-          {...register("businessId")}
-          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+        <Label htmlFor="invitationBusinessId">Negocio</Label>
+        <Select
+          value={selectedBusinessId ?? ""}
+          onValueChange={(val) => setValue("businessId", val, { shouldValidate: true })}
         >
-          <option value="">Selecciona un negocio...</option>
-          {businesses.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            id="invitationBusinessId"
+            aria-invalid={!!errors.businessId}
+          >
+            <SelectValue placeholder="Selecciona un negocio..." />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            {businesses.map((b) => (
+              <SelectItem key={b.id} value={b.id}>
+                {b.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {errors.businessId && (
           <p className="text-xs text-destructive">{errors.businessId.message}</p>
         )}
       </div>
 
       {inviteBlockedMessage && (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 flex items-start gap-2">
+        <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 flex items-start gap-2">
           <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
           <p className="text-sm text-amber-600 dark:text-amber-400">{inviteBlockedMessage}</p>
         </div>
       )}
 
       {serverError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+        <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
           <p className="text-sm text-destructive">{serverError}</p>
         </div>
       )}
 
       {generatedCode && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
+        <div role="alert" className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-3">
           <p className="text-xs text-muted-foreground mb-1.5">Código generado</p>
           <div className="flex items-center justify-between gap-3">
             <span className="font-mono text-xl font-semibold tracking-widest text-emerald-600 dark:text-emerald-400">
@@ -122,7 +135,7 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
             <button
               type="button"
               onClick={copyCode}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
               aria-label="Copiar código"
             >
               {copied ? (

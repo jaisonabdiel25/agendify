@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { getSession, signIn } from "next-auth/react"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -61,7 +61,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="space-y-1.5">
         <Label htmlFor="email">Correo electrónico</Label>
         <Input
@@ -69,6 +69,7 @@ export function LoginForm() {
           type="email"
           placeholder="tu@empresa.com"
           autoComplete="email"
+          className="h-11"
           {...register("email")}
           aria-invalid={!!errors.email}
         />
@@ -94,6 +95,7 @@ export function LoginForm() {
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             autoComplete="current-password"
+            className="h-11 pr-10"
             {...register("password")}
             aria-invalid={!!errors.password}
           />
@@ -101,7 +103,7 @@ export function LoginForm() {
             type="button"
             tabIndex={-1}
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -113,12 +115,16 @@ export function LoginForm() {
       </div>
 
       {serverError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+        <div
+          role="alert"
+          className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5"
+        >
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
           <p className="text-sm text-destructive">{serverError}</p>
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full h-11" disabled={isSubmitting}>
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

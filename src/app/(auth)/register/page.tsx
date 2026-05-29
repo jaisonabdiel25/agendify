@@ -8,16 +8,39 @@ export const metadata: Metadata = {
   title: "Crear cuenta — Agendify",
 }
 
+const FEATURES = [
+  "Activación con código de invitación",
+  "Perfil listo en minutos",
+  "Acceso completo al panel desde el día uno",
+]
+
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[1fr_480px]">
+    <div className="min-h-dvh lg:grid lg:grid-cols-[1fr_480px]">
       {/* Left panel — always dark, branding */}
-      <div className="hidden lg:flex flex-col justify-between bg-zinc-950 p-12">
-        <Link href="/" className="font-bold text-base text-zinc-50 tracking-tight">
+      <div className="hidden lg:flex flex-col justify-between bg-zinc-950 p-12 relative overflow-hidden">
+        {/* Dot pattern overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        {/* Top-right ambient glow */}
+        <div className="absolute -top-48 -right-48 w-130 h-130 rounded-full bg-zinc-600/20 blur-3xl pointer-events-none" />
+        {/* Bottom-left subtle glow */}
+        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-zinc-800/40 blur-3xl pointer-events-none" />
+
+        <Link
+          href="/"
+          className="relative z-10 font-bold text-base text-zinc-50 tracking-tight"
+        >
           Agendify
         </Link>
 
-        <div>
+        <div className="relative z-10">
           <p className="text-[0.65rem] tracking-[0.25em] uppercase text-zinc-500 mb-5">
             Plataforma de gestión
           </p>
@@ -25,17 +48,28 @@ export default function RegisterPage() {
             Bienvenido<br />al equipo.
           </h2>
           <p className="mt-6 text-sm text-zinc-400 max-w-xs leading-relaxed">
-            Usa el código que recibiste para activar tu cuenta.
+            Usa el código de invitación para activar tu cuenta y empezar en minutos.
           </p>
+          <ul className="mt-10 space-y-4">
+            {FEATURES.map((feature) => (
+              <li key={feature} className="flex items-center gap-3 text-sm text-zinc-500">
+                <div className="h-px w-5 bg-zinc-700 shrink-0" />
+                {feature}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <p className="text-xs text-zinc-700">© 2026 Agendify</p>
+        <p className="relative z-10 text-xs text-zinc-700">© 2026 Agendify</p>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex flex-col min-h-screen lg:min-h-0 border-l border-border">
+      <div className="flex flex-col min-h-dvh lg:min-h-0 border-l border-border">
         <div className="flex items-center justify-between px-6 py-4 lg:px-10 lg:py-5">
-          <Link href="/" className="font-bold text-base tracking-tight hover:opacity-80 transition-opacity lg:hidden">
+          <Link
+            href="/"
+            className="font-bold text-base tracking-tight hover:opacity-80 transition-opacity lg:hidden"
+          >
             Agendify
           </Link>
           <div className="lg:ml-auto">
@@ -45,7 +79,7 @@ export default function RegisterPage() {
 
         <div className="flex-1 flex items-center justify-center px-6 py-10 sm:px-8 sm:py-12 lg:px-12">
           <div className="w-full max-w-sm">
-            <div className="mb-8 sm:mb-10">
+            <div className="animate-fade-up [animation-delay:0ms] mb-8 sm:mb-10">
               <h1 className="font-display font-light text-3xl sm:text-4xl leading-[1.05]">
                 Crea tu<br />cuenta.
               </h1>
@@ -60,9 +94,11 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <RegisterForm />
+            <div className="animate-fade-up [animation-delay:100ms]">
+              <RegisterForm />
+            </div>
 
-            <p className="text-sm text-muted-foreground mt-7">
+            <p className="animate-fade-up [animation-delay:180ms] text-sm text-muted-foreground mt-7">
               ¿Ya tienes cuenta?{" "}
               <Link
                 href="/login"

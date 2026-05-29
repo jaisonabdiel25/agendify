@@ -4,6 +4,30 @@
 
 jest.mock("next/navigation", () => ({ useRouter: jest.fn() }))
 
+jest.mock("@/components/ui/select", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react")
+  const Ctx = React.createContext(undefined)
+  return {
+    Select: ({ onValueChange, children }: { onValueChange?: (v: string) => void; children: React.ReactNode }) =>
+      React.createElement(Ctx.Provider, { value: onValueChange }, children),
+    SelectTrigger: ({ children, id, "aria-invalid": ariaInvalid }: { children?: React.ReactNode; id?: string; "aria-invalid"?: boolean }) =>
+      React.createElement("button", { type: "button", role: "combobox", id, "aria-invalid": ariaInvalid }, children),
+    SelectValue: ({ placeholder }: { placeholder?: string }) =>
+      React.createElement("span", null, placeholder),
+    SelectContent: ({ children }: { children?: React.ReactNode }) =>
+      React.createElement("div", null, children),
+    SelectItem: ({ value, children }: { value: string; children?: React.ReactNode }) => {
+      const onValueChange = React.useContext(Ctx)
+      return React.createElement("button", {
+        type: "button",
+        role: "option",
+        onClick: () => onValueChange && onValueChange(value),
+      }, children)
+    },
+  }
+})
+
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { CreateInvitationForm } from "@/components/modules/admin/create-invitation-form"
@@ -65,7 +89,7 @@ describe("CreateInvitationForm — límites de plan", () => {
   it("muestra advertencia y deshabilita botón cuando el negocio PRO alcanzó el límite de usuarios", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businessesAtLimit} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-3")
+    await user.click(screen.getByRole("option", { name: "Barbería Llena" }))
     expect(
       screen.getByText(/El plan Pro permite hasta 3 usuarios\. Ya se alcanzó el límite\./i)
     ).toBeInTheDocument()
@@ -75,7 +99,7 @@ describe("CreateInvitationForm — límites de plan", () => {
   it("muestra advertencia y deshabilita botón para plan Estándar", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businessesStandard} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-4")
+    await user.click(screen.getByRole("option", { name: "Negocio Estándar" }))
     expect(
       screen.getByText(/El plan Estándar no permite generar invitaciones/i)
     ).toBeInTheDocument()
@@ -85,7 +109,7 @@ describe("CreateInvitationForm — límites de plan", () => {
   it("no muestra advertencia ni deshabilita cuando el negocio PRO tiene cupo disponible", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     expect(screen.queryByRole("img", { hidden: true })).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Generar invitación" })).not.toBeDisabled()
   })
@@ -93,7 +117,7 @@ describe("CreateInvitationForm — límites de plan", () => {
   it("no llama fetch cuando el límite está alcanzado", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businessesAtLimit} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-3")
+    await user.click(screen.getByRole("option", { name: "Barbería Llena" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     expect(global.fetch).not.toHaveBeenCalled()
   })
@@ -103,7 +127,7 @@ describe("CreateInvitationForm — submit exitoso", () => {
   it("llama fetch con el businessId seleccionado", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -119,7 +143,7 @@ describe("CreateInvitationForm — submit exitoso", () => {
   it("muestra el código generado tras el submit", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     await waitFor(() => {
       expect(screen.getByText("ABCD-1234")).toBeInTheDocument()
@@ -129,7 +153,7 @@ describe("CreateInvitationForm — submit exitoso", () => {
   it("muestra botón de copiar tras generar código", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     await waitFor(() => {
       expect(screen.getByLabelText("Copiar código")).toBeInTheDocument()
@@ -145,7 +169,7 @@ describe("CreateInvitationForm — submit exitoso", () => {
       writable: true,
     })
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     await waitFor(() => screen.getByLabelText("Copiar código"))
     await user.click(screen.getByLabelText("Copiar código"))
@@ -161,7 +185,7 @@ describe("CreateInvitationForm — error del servidor", () => {
     } as Response)
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     await waitFor(() => {
       expect(screen.getByText("Error al generar")).toBeInTheDocument()
@@ -175,7 +199,7 @@ describe("CreateInvitationForm — error del servidor", () => {
     } as Response)
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businesses} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-1")
+    await user.click(screen.getByRole("option", { name: "Mi Barbería" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
     await waitFor(() => {
       expect(screen.getByText("Error al generar la invitación.")).toBeInTheDocument()
@@ -188,7 +212,7 @@ describe("CreateInvitationForm — negocio sin planType", () => {
     const user = userEvent.setup()
     const businessesSinPlan = [{ id: "biz-5", name: "Sin Plan", canInvite: null, maxUsers: null, userCount: 0 }]
     render(<CreateInvitationForm businesses={businessesSinPlan} />)
-    await user.selectOptions(screen.getByRole("combobox"), "biz-5")
+    await user.click(screen.getByRole("option", { name: "Sin Plan" }))
     expect(screen.getByText(/no tiene un plan asignado/i)).toBeInTheDocument()
   })
 })
