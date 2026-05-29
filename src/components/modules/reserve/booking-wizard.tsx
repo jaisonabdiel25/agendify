@@ -80,6 +80,11 @@ function today() {
   return new Date().toISOString().split("T")[0]
 }
 
+function nowHHMM() {
+  const now = new Date()
+  return `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StepHeader({
@@ -479,13 +484,13 @@ export function BookingWizard({ initialBusiness }: BookingWizardProps) {
                 <Label>Horarios disponibles</Label>
                 {loading ? (
                   <LoadingState />
-                ) : slots.length === 0 ? (
+                ) : (slots.length === 0 || (date === today() && slots.every((s) => s <= nowHHMM()))) ? (
                   <p className="text-sm text-muted-foreground py-4 text-center">
                     No hay horarios disponibles para este día.
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {slots.map((slot) => (
+                    {slots.filter((s) => date !== today() || s > nowHHMM()).map((slot) => (
                       <button
                         key={slot}
                         onClick={() => setTime(slot)}
