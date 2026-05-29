@@ -139,6 +139,9 @@ export function BookingsTable({
             <table className="w-full text-sm min-w-125">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
+                  <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">
+                    Estado
+                  </th>
                   <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground whitespace-nowrap text-xs sm:text-sm">
                     Fecha
                   </th>
@@ -150,9 +153,6 @@ export function BookingsTable({
                   </th>
                   <th className="hidden sm:table-cell text-left px-4 py-3 font-medium text-muted-foreground text-sm">
                     Puesto
-                  </th>
-                  <th className="text-left px-3 sm:px-4 py-2.5 sm:py-3 font-medium text-muted-foreground text-xs sm:text-sm">
-                    Estado
                   </th>
                   <th className="hidden md:table-cell text-left px-4 py-3 font-medium text-muted-foreground whitespace-nowrap text-sm">
                     Duración
@@ -171,6 +171,13 @@ export function BookingsTable({
                     key={booking.id}
                     className="hover:bg-muted/20 transition-colors duration-100"
                   >
+                    <td className="px-3 sm:px-4 py-2.5 sm:py-3">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium whitespace-nowrap ${STATUS_BADGE[booking.status]}`}
+                      >
+                        {STATUS_LABEL[booking.status]}
+                      </span>
+                    </td>
                     <td className="px-3 sm:px-4 py-2.5 sm:py-3 whitespace-nowrap text-xs sm:text-sm text-muted-foreground">
                       {format(new Date(booking.startTime), "dd/MM/yy HH:mm", {
                         locale: es,
@@ -199,13 +206,6 @@ export function BookingsTable({
                     </td>
                     <td className="hidden sm:table-cell px-4 py-3 text-sm text-muted-foreground">
                       {booking.chair.name}
-                    </td>
-                    <td className="px-3 sm:px-4 py-2.5 sm:py-3">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] sm:text-xs font-medium whitespace-nowrap ${STATUS_BADGE[booking.status]}`}
-                      >
-                        {STATUS_LABEL[booking.status]}
-                      </span>
                     </td>
                     <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                       {booking.service.durationMinutes} min

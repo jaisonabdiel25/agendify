@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { Resend } from "resend"
 import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
+import { contactEmailHtml } from "./template"
 
 const contactSchema = z.object({
-  email: z.string().email("Ingresa un correo válido."),
+  email: z.string().email({ message: "Ingresa un correo válido." }),
   phone: z.string().regex(PHONE_REGEX, PHONE_VALIDATION_MESSAGE),
   message: z
     .string()
@@ -32,12 +33,7 @@ export async function POST(request: Request) {
       from: "Agendify <onboarding@resend.dev>",
       to: contactEmail,
       subject: `Nuevo mensaje de contacto — ${email}`,
-      html: `
-        <p><strong>Correo:</strong> ${email}</p>
-        <p><strong>Celular:</strong> ${phone}</p>
-        <p><strong>Mensaje:</strong></p>
-        <p>${message}</p>
-      `,
+      html: contactEmailHtml({ email, phone, message }),
     })
 
     if (error) {
