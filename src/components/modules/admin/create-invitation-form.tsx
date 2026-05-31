@@ -47,7 +47,7 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
   const selectedBusinessId = watch("businessId")
   const selectedBusiness = businesses.find((b) => b.id === selectedBusinessId)
 
-  const inviteBlockedMessage = (() => {
+  const inviteWarningMessage = (() => {
     if (!selectedBusiness) return null
     if (selectedBusiness.canInvite === null) return "Este negocio no tiene un plan asignado."
     if (!selectedBusiness.canInvite) return "El plan Estándar no permite generar invitaciones."
@@ -112,10 +112,10 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
         )}
       </div>
 
-      {inviteBlockedMessage && (
+      {inviteWarningMessage && (
         <div role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 flex items-start gap-2">
           <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-          <p className="text-sm text-amber-600 dark:text-amber-400">{inviteBlockedMessage}</p>
+          <p className="text-sm text-amber-600 dark:text-amber-400">{inviteWarningMessage}</p>
         </div>
       )}
 
@@ -151,7 +151,7 @@ export function CreateInvitationForm({ businesses }: { businesses: Business[] })
       <Button
         type="submit"
         className="w-full"
-        disabled={isSubmitting || businesses.length === 0 || !!inviteBlockedMessage}
+        disabled={isSubmitting || businesses.length === 0}
       >
         {isSubmitting ? (
           <>

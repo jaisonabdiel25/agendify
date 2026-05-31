@@ -34,6 +34,7 @@ export default async function ServicePage() {
   const maxServices = business?.plan?.maxServices ?? 1
   const activeCount = services.filter((s) => s.isActive).length
   const canCreate = activeCount < maxServices
+  const usagePercent = Math.min((activeCount / maxServices) * 100, 100)
 
   const serializedServices = services.map((s) => ({
     ...s,
@@ -43,26 +44,38 @@ export default async function ServicePage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
           <h1 className="font-display font-light text-3xl">Servicios</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {activeCount} / {maxServices} {maxServices === 1 ? "servicio" : "servicios"}
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-foreground transition-all duration-500"
+                style={{ width: `${usagePercent}%` }}
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {activeCount} / {maxServices} {maxServices === 1 ? "servicio activo" : "servicios activos"}
+            </p>
+          </div>
         </div>
-        <Button asChild={canCreate} disabled={!canCreate} title={!canCreate ? `Tu plan permite hasta ${maxServices} ${maxServices === 1 ? "servicio activo" : "servicios activos"}` : undefined}>
-          {canCreate ? (
+
+        {canCreate ? (
+          <Button asChild>
             <Link href="/service/new">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
               Nuevo servicio
             </Link>
-          ) : (
-            <>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo servicio
-            </>
-          )}
-        </Button>
+          </Button>
+        ) : (
+          <Button
+            disabled
+            title={`Tu plan permite hasta ${maxServices} ${maxServices === 1 ? "servicio activo" : "servicios activos"}`}
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo servicio
+          </Button>
+        )}
       </div>
 
       <ServiceTable services={serializedServices} chairs={chairs} />

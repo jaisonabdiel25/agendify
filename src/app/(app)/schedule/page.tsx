@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { Armchair } from "lucide-react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ScheduleForm } from "@/components/modules/schedule/schedule-form"
@@ -21,9 +22,13 @@ export default async function SchedulePage() {
 
   if (!chair) {
     return (
-      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <p className="text-sm text-muted-foreground max-w-sm">
-          No tienes un puesto asignado. Pide al administrador que te asigne uno para poder configurar tu cronograma.
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div className="rounded-full bg-muted p-4 mb-4">
+          <Armchair className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <h2 className="font-medium text-base mb-1">Sin puesto asignado</h2>
+        <p className="text-sm text-muted-foreground max-w-xs">
+          Pide al administrador que te asigne un puesto para poder configurar tu cronograma.
         </p>
       </div>
     )

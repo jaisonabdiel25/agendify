@@ -86,24 +86,24 @@ describe("CreateInvitationForm — renderizado", () => {
 })
 
 describe("CreateInvitationForm — límites de plan", () => {
-  it("muestra advertencia y deshabilita botón cuando el negocio PRO alcanzó el límite de usuarios", async () => {
+  it("muestra advertencia pero NO deshabilita botón cuando el negocio PRO alcanzó el límite de usuarios", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businessesAtLimit} />)
     await user.click(screen.getByRole("option", { name: "Barbería Llena" }))
     expect(
       screen.getByText(/El plan Pro permite hasta 3 usuarios\. Ya se alcanzó el límite\./i)
     ).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Generar invitación" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Generar invitación" })).not.toBeDisabled()
   })
 
-  it("muestra advertencia y deshabilita botón para plan Estándar", async () => {
+  it("muestra advertencia pero NO deshabilita botón para plan Estándar", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businessesStandard} />)
     await user.click(screen.getByRole("option", { name: "Negocio Estándar" }))
     expect(
       screen.getByText(/El plan Estándar no permite generar invitaciones/i)
     ).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Generar invitación" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Generar invitación" })).not.toBeDisabled()
   })
 
   it("no muestra advertencia ni deshabilita cuando el negocio PRO tiene cupo disponible", async () => {
@@ -114,12 +114,17 @@ describe("CreateInvitationForm — límites de plan", () => {
     expect(screen.getByRole("button", { name: "Generar invitación" })).not.toBeDisabled()
   })
 
-  it("no llama fetch cuando el límite está alcanzado", async () => {
+  it("llama fetch aunque el límite esté alcanzado (admin sin restricción de plan)", async () => {
     const user = userEvent.setup()
     render(<CreateInvitationForm businesses={businessesAtLimit} />)
     await user.click(screen.getByRole("option", { name: "Barbería Llena" }))
     await user.click(screen.getByRole("button", { name: "Generar invitación" }))
-    expect(global.fetch).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/admin/invitations",
+        expect.objectContaining({ method: "POST" })
+      )
+    })
   })
 })
 

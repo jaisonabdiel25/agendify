@@ -10,6 +10,15 @@ const roleLabel: Record<string, string> = {
   STAFF: "Staff",
 }
 
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+}
+
 export default async function UserPage() {
   const session = await auth()
 
@@ -20,32 +29,39 @@ export default async function UserPage() {
 
   return (
     <div className="p-6 flex flex-col items-center">
-      <div className="w-full max-w-2xl space-y-2">
-        <h1 className="font-display font-light text-3xl">Mi perfil</h1>
-        <p className="text-sm text-muted-foreground">
-          Información de tu cuenta y preferencias personales.
-        </p>
-      </div>
-
-      <div className="w-full max-w-2xl mt-8 space-y-6">
-        <div className="rounded-xl border border-border bg-card">
-          <div className="px-6 py-4 border-b border-border">
-            <h2 className="font-medium text-sm">Información de cuenta</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Estos datos no son editables.</p>
+      <div className="w-full max-w-2xl">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="h-14 w-14 rounded-full bg-foreground/10 flex items-center justify-center text-lg font-medium text-foreground shrink-0 select-none">
+            {getInitials(user.name)}
           </div>
-          <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label>Correo electrónico</Label>
-              <Input value={user.email} disabled readOnly className="bg-muted/40" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Rol</Label>
-              <Input value={roleLabel[user.role] ?? user.role} disabled readOnly className="bg-muted/40" />
-            </div>
+          <div>
+            <h1 className="font-display font-light text-3xl leading-tight">{user.name}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {roleLabel[user.role] ?? user.role}
+            </p>
           </div>
         </div>
 
-        <UserProfileCard user={{ id: user.id, name: user.name, description: user.description }} />
+        <div className="space-y-6">
+          <div className="rounded-xl border border-border bg-card">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="font-medium text-sm">Información de cuenta</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Estos datos no son editables.</p>
+            </div>
+            <div className="px-6 py-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <Label>Correo electrónico</Label>
+                <Input value={user.email} disabled readOnly className="bg-muted/40" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Rol</Label>
+                <Input value={roleLabel[user.role] ?? user.role} disabled readOnly className="bg-muted/40" />
+              </div>
+            </div>
+          </div>
+
+          <UserProfileCard user={{ id: user.id, name: user.name, description: user.description }} />
+        </div>
       </div>
     </div>
   )

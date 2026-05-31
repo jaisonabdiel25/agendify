@@ -14,16 +14,17 @@ import type { MonthlyPoint } from "./types"
 
 interface MonthlyTrendProps {
   data: MonthlyPoint[]
+  description?: string
 }
 
-export function MonthlyTrend({ data }: MonthlyTrendProps) {
+export function MonthlyTrend({ data, description = "Reservas de los últimos 12 meses" }: MonthlyTrendProps) {
   const hasData = data.some((d) => d.count > 0)
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Tendencia mensual</CardTitle>
-        <CardDescription>Reservas de los últimos 12 meses</CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         {!hasData ? (

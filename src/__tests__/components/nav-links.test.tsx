@@ -47,32 +47,32 @@ describe("NavLinks — visibilidad condicional por rol", () => {
 })
 
 describe("NavLinks — estado activo del enlace", () => {
-  it("el enlace activo recibe la clase de subrayado inferior", () => {
+  it("el enlace activo recibe la clase bg-accent", () => {
     pathnameMock.mockReturnValue("/dashboard")
     render(<NavLinks canManage={false} />)
     const link = screen.getByText("Calendario").closest("a")
-    expect(link?.className).toContain("after:bg-foreground")
+    expect(link?.className).toContain("bg-accent")
   })
 
-  it("los enlaces inactivos no tienen la clase de subrayado", () => {
+  it("los enlaces inactivos no tienen bg-accent como estado activo", () => {
     pathnameMock.mockReturnValue("/dashboard")
     render(<NavLinks canManage={false} />)
     const link = screen.getByText("Reservas").closest("a")
-    expect(link?.className).not.toContain("after:bg-foreground")
+    expect(link?.className).not.toContain("text-foreground font-medium")
   })
 
   it("el enlace /booking es activo en rutas que comienzan con /booking/", () => {
     pathnameMock.mockReturnValue("/booking/123")
     render(<NavLinks canManage={false} />)
     const link = screen.getByText("Reservas").closest("a")
-    expect(link?.className).toContain("after:bg-foreground")
+    expect(link?.className).toContain("bg-accent")
   })
 
   it("Cronograma es activo cuando la ruta es /schedule", () => {
     pathnameMock.mockReturnValue("/schedule")
     render(<NavLinks canManage={false} />)
     const link = screen.getByText("Cronograma").closest("a")
-    expect(link?.className).toContain("after:bg-foreground")
+    expect(link?.className).toContain("bg-accent")
   })
 })
 

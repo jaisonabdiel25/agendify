@@ -31,6 +31,10 @@ export default async function UserAdminPage() {
     }),
   ])
 
+  const maxUsers = business.plan.maxUsers
+  const activeCount = users.filter((u) => u.isActive).length
+  const usagePercent = Math.min((users.length / maxUsers) * 100, 100)
+
   const formattedUsers = users.map((u) => ({
     id: u.id,
     name: u.name,
@@ -42,18 +46,31 @@ export default async function UserAdminPage() {
 
   return (
     <div className="p-6 flex flex-col items-center">
-      <div className="w-full max-w-3xl space-y-2">
-        <h1 className="font-display font-light text-3xl">Equipo</h1>
-        <p className="text-sm text-muted-foreground">
-          Administra los usuarios de tu negocio y controla quién puede acceder.
-        </p>
-      </div>
+      <div className="w-full max-w-3xl">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-8">
+          <div className="space-y-1">
+            <h1 className="font-display font-light text-3xl">Equipo</h1>
+            <p className="text-sm text-muted-foreground">
+              Administra los usuarios de tu negocio y controla quién puede acceder.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 sm:pt-1 shrink-0">
+            <div className="flex h-1.5 w-20 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-foreground transition-all duration-500"
+                style={{ width: `${usagePercent}%` }}
+              />
+            </div>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              {activeCount} activos · {users.length} / {maxUsers}
+            </span>
+          </div>
+        </div>
 
-      <div className="w-full max-w-3xl mt-8">
         <StaffTable
           users={formattedUsers}
           totalCount={users.length}
-          maxUsers={business.plan.maxUsers}
+          maxUsers={maxUsers}
           currentUserId={currentUserId}
           currentUserRole={currentUserRole}
         />

@@ -15,12 +15,12 @@ export function NavLinks({ canManage }: NavLinksProps) {
   function linkClass(href: string) {
     const isActive = pathname === href || pathname.startsWith(href + "/")
     return isActive
-      ? "text-sm text-foreground font-medium transition-colors duration-150 relative after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-px after:bg-foreground"
-      : "text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+      ? "text-sm text-foreground font-medium transition-colors duration-150 rounded-md px-2.5 py-1.5 bg-accent"
+      : "text-sm text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors duration-150 rounded-md px-2.5 py-1.5"
   }
 
   return (
-    <nav className="hidden sm:flex items-center gap-4 sm:gap-5">
+    <nav className="hidden sm:flex items-center gap-1 sm:gap-1">
       <Link
         href="/dashboard"
         className={`${linkClass("/dashboard")} flex items-center gap-1.5`}
