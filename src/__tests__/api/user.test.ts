@@ -74,6 +74,18 @@ describe("GET /api/user", () => {
   })
 })
 
+describe("PATCH /api/user — body no parseable", () => {
+  it("retorna 400 cuando el body no es JSON válido", async () => {
+    authMock.mockResolvedValue(mockSession)
+    const req = new Request("http://localhost/api/user", {
+      method: "PATCH",
+      body: "invalid-json-body",
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+  })
+})
+
 describe("PATCH /api/user", () => {
   it("retorna 401 sin sesión autenticada", async () => {
     authMock.mockResolvedValue(null)

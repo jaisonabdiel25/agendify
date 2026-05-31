@@ -76,4 +76,48 @@ describe("LandingHeader — menú móvil", () => {
     const links = screen.getAllByText("Contáctanos")
     expect(links.length).toBeGreaterThanOrEqual(1)
   })
+
+  it("cierra el menú al hacer clic en el enlace Precios del menú móvil", async () => {
+    const user = userEvent.setup()
+    render(<LandingHeader />)
+    await user.click(screen.getByLabelText("Abrir menú"))
+    const preciosLinks = screen.getAllByText("Precios")
+    await user.click(preciosLinks[preciosLinks.length - 1])
+    expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
+  })
+
+  it("cierra el menú al hacer clic en el enlace Reservar cita del menú móvil", async () => {
+    const user = userEvent.setup()
+    render(<LandingHeader />)
+    await user.click(screen.getByLabelText("Abrir menú"))
+    const reservarLinks = screen.getAllByText("Reservar cita")
+    await user.click(reservarLinks[reservarLinks.length - 1])
+    expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
+  })
+
+  it("cierra el menú al hacer clic en el enlace Iniciar sesión del menú móvil", async () => {
+    const user = userEvent.setup()
+    render(<LandingHeader />)
+    await user.click(screen.getByLabelText("Abrir menú"))
+    const loginLinks = screen.getAllByText("Iniciar sesión")
+    await user.click(loginLinks[loginLinks.length - 1])
+    expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
+  })
+
+  it("cierra el menú al hacer clic en el enlace Contáctanos del menú móvil", async () => {
+    const user = userEvent.setup()
+    render(<LandingHeader />)
+    await user.click(screen.getByLabelText("Abrir menú"))
+    const contactLinks = screen.getAllByText("Contáctanos")
+    await user.click(contactLinks[contactLinks.length - 1])
+    expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
+  })
+
+  it("cierra el menú al hacer clic en el enlace Comenzar ahora del menú móvil", async () => {
+    const user = userEvent.setup()
+    render(<LandingHeader />)
+    await user.click(screen.getByLabelText("Abrir menú"))
+    await user.click(screen.getByText("Comenzar ahora →"))
+    expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
+  })
 })

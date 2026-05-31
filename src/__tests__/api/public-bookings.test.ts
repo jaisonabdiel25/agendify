@@ -53,6 +53,17 @@ function makeRequest(body: unknown) {
   })
 }
 
+describe("POST /api/public/bookings — body no parseable", () => {
+  it("retorna 400 cuando el body no es JSON válido", async () => {
+    const req = new Request("http://localhost/api/public/bookings", {
+      method: "POST",
+      body: "invalid-json-body",
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+})
+
 describe("POST /api/public/bookings — validación", () => {
   it("retorna 400 con body vacío", async () => {
     const res = await POST(makeRequest({}))

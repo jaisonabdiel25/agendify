@@ -15,6 +15,7 @@ jest.mock("@/components/ui/sheet", () => ({
 }))
 
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { usePathname } from "next/navigation"
 import { MobileNav } from "@/components/modules/mobile-nav"
 
@@ -175,5 +176,24 @@ describe("MobileNav — estado activo del enlace", () => {
     render(<MobileNav canManage={false} />)
     const link = screen.getByText("Cronograma").closest("a")
     expect(link?.className).toContain("bg-accent")
+  })
+})
+
+// ──────────────────────────────────────────────────────────
+// Cierre del sheet al hacer clic en un enlace
+// ──────────────────────────────────────────────────────────
+describe("MobileNav — onClick de links (setOpen)", () => {
+  it("no lanza error al hacer clic en un enlace principal (Calendario)", async () => {
+    const user = userEvent.setup()
+    render(<MobileNav canManage={false} />)
+    await user.click(screen.getByText("Calendario").closest("a")!)
+    expect(screen.getByText("Calendario")).toBeInTheDocument()
+  })
+
+  it("no lanza error al hacer clic en un enlace de gestión (Puestos)", async () => {
+    const user = userEvent.setup()
+    render(<MobileNav canManage={true} />)
+    await user.click(screen.getByText("Puestos").closest("a")!)
+    expect(screen.getByText("Puestos")).toBeInTheDocument()
   })
 })

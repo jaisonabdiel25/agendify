@@ -9,8 +9,23 @@ jest.mock("@/components/ui/dialog", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react")
   return {
-    Dialog: ({ children }: { children: React.ReactNode }) =>
-      React.createElement(React.Fragment, null, children),
+    Dialog: ({
+      children,
+      onOpenChange,
+    }: {
+      children: React.ReactNode
+      onOpenChange?: (v: boolean) => void
+    }) =>
+      React.createElement(
+        React.Fragment,
+        null,
+        children,
+        React.createElement(
+          "button",
+          { "data-testid": "dialog-close-external", onClick: () => onOpenChange?.(false) },
+          "Close"
+        )
+      ),
     DialogTrigger: ({ children }: { children: React.ReactNode }) => children,
     DialogContent: ({ children }: { children: React.ReactNode }) =>
       React.createElement("div", { "data-testid": "dialog-content" }, children),
@@ -215,6 +230,40 @@ describe("PlanFormDialog — validación", () => {
     await user.click(screen.getByRole("button", { name: "Guardar" }))
     await waitFor(() => {
       expect(global.fetch).not.toHaveBeenCalled()
+    })
+  })
+})
+
+// ─── Toggle canInvite ─────────────────────────────────────────────────────────
+
+describe("PlanFormDialog — toggle canInvite", () => {
+  it("el toggle cambia de estado al hacer clic", async () => {
+    const user = userEvent.setup()
+    render(<PlanFormDialog />)
+    const toggle = screen.getByRole("switch")
+    expect(toggle).toHaveAttribute("aria-checked", "false")
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute("aria-checked", "true")
+  })
+})
+
+// ─── handleOpenChange ─────────────────────────────────────────────────────────
+
+describe("PlanFormDialog — handleOpenChange", () => {
+  it("limpia el error del servidor al cerrar el diálogo", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Error de prueba." }),
+    } as Response)
+    const user = userEvent.setup()
+    render(<PlanFormDialog plan={mockPlan} />)
+    await user.click(screen.getByRole("button", { name: "Guardar" }))
+    await waitFor(() => {
+      expect(screen.getByText("Error de prueba.")).toBeInTheDocument()
+    })
+    await user.click(screen.getByTestId("dialog-close-external"))
+    await waitFor(() => {
+      expect(screen.queryByText("Error de prueba.")).not.toBeInTheDocument()
     })
   })
 })

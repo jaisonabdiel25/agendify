@@ -147,3 +147,20 @@ describe("EditBusinessForm — negocio sin datos opcionales", () => {
     expect(screen.getByLabelText("Correo electrónico")).toHaveValue("")
   })
 })
+
+describe("EditBusinessForm — error con body no parseable", () => {
+  it("muestra error genérico cuando response.json() lanza excepción", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => { throw new Error("parse error") },
+    } as unknown as Response)
+    const user = userEvent.setup()
+    render(<EditBusinessForm business={business} />)
+    await user.clear(screen.getByLabelText("Nombre del negocio *"))
+    await user.type(screen.getByLabelText("Nombre del negocio *"), "Nuevo Nombre")
+    await user.click(screen.getByRole("button", { name: "Guardar cambios" }))
+    await waitFor(() => {
+      expect(screen.getByText("Error al guardar los cambios.")).toBeInTheDocument()
+    })
+  })
+})

@@ -86,6 +86,18 @@ describe("GET /api/chairs", () => {
   })
 })
 
+describe("POST /api/chairs — body no parseable", () => {
+  it("retorna 400 cuando el body no es JSON válido", async () => {
+    authMock.mockResolvedValue(mockOwnerSession)
+    const req = new Request("http://localhost/api/chairs", {
+      method: "POST",
+      body: "invalid-json-body",
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+  })
+})
+
 describe("POST /api/chairs", () => {
   it("retorna 401 sin sesión", async () => {
     authMock.mockResolvedValue(null)

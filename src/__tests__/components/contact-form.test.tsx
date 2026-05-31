@@ -172,4 +172,18 @@ describe("ContactForm — error del servidor", () => {
       expect(toastErrorMock).toHaveBeenCalledWith(expect.stringContaining("Intenta de nuevo"))
     })
   })
+
+  it("muestra toast de error genérico cuando response.json() lanza excepción", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => { throw new Error("parse error") },
+    } as unknown as Response)
+    const user = userEvent.setup()
+    render(<ContactForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Enviar mensaje" }))
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith(expect.stringContaining("Intenta de nuevo"))
+    })
+  })
 })

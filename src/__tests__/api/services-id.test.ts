@@ -78,6 +78,21 @@ describe("PATCH /api/services/[id] — autenticación", () => {
   })
 })
 
+describe("PATCH /api/services/[id] — body no parseable", () => {
+  it("retorna 400 cuando el body no es JSON válido", async () => {
+    authMock.mockResolvedValue(mockOwnerSession)
+    jest.mocked(prisma.service.findFirst).mockResolvedValue(
+      mockService as unknown as Awaited<ReturnType<typeof prisma.service.findFirst>>
+    )
+    const req = new Request("http://localhost/api/services/svc-1", {
+      method: "PATCH",
+      body: "invalid-json-body",
+    })
+    const res = await PATCH(req, makeParams("svc-1"))
+    expect(res.status).toBe(400)
+  })
+})
+
 describe("PATCH /api/services/[id] — validación de datos", () => {
   beforeEach(() => {
     authMock.mockResolvedValue(mockOwnerSession)
