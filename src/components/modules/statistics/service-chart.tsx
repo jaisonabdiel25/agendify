@@ -1,17 +1,20 @@
 "use client"
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 import type { ServicePoint } from "./types"
+
+const chartConfig: ChartConfig = {
+  count: {
+    label: "Reservas",
+  },
+}
 
 interface ServiceChartProps {
   data: ServicePoint[]
@@ -43,7 +46,7 @@ export function ServiceChart({ data }: ServiceChartProps) {
         <CardDescription>Top {data.length} por cantidad de reservas</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={height}>
+        <ChartContainer config={chartConfig} style={{ height }} className="w-full">
           <BarChart
             layout="vertical"
             data={data}
@@ -69,23 +72,14 @@ export function ServiceChart({ data }: ServiceChartProps) {
               axisLine={false}
               tickLine={false}
             />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                borderColor: "hsl(var(--border))",
-                borderRadius: "6px",
-              }}
-              labelStyle={{ color: "hsl(var(--card-foreground))" }}
-              itemStyle={{ color: "hsl(var(--card-foreground))" }}
-              formatter={(value: unknown) => [String(value ?? ""), "Reservas"]}
-            />
+            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
             <Bar dataKey="count" radius={[0, 3, 3, 0]} maxBarSize={20}>
               {data.map((entry) => (
                 <Cell key={entry.serviceId} fill={entry.color} />
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   )

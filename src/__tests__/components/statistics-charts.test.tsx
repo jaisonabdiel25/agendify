@@ -13,28 +13,20 @@ jest.mock("recharts", () => ({
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
-  Tooltip: ({
-    formatter,
-    labelFormatter,
-  }: {
-    formatter?: (value: unknown, name?: unknown) => unknown
-    labelFormatter?: (label: unknown) => unknown
-  }) => {
-    if (formatter) {
-      formatter(5, "COMPLETED")
-      formatter(null, "INVALID_STATUS")
-    }
-    if (labelFormatter) labelFormatter("15")
-    return null
-  },
-  Legend: ({ formatter }: { formatter?: (value: unknown) => unknown }) => {
-    if (formatter) {
-      formatter("PENDING")
-      formatter("INVALID_STATUS")
-    }
-    return null
-  },
+  Tooltip: () => null,
+  Legend: () => null,
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}))
+
+jest.mock("@/components/ui/chart", () => ({
+  ChartContainer: ({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) => (
+    <div className={className} style={style}>{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+  ChartLegend: () => null,
+  ChartLegendContent: () => null,
+  ChartStyle: () => null,
 }))
 
 import React from "react"

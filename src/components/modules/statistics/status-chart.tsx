@@ -1,16 +1,16 @@
 "use client"
 
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { PieChart, Pie, Cell } from "recharts"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 import type { StatusSlice, BookingStatus } from "./types"
-
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  PENDING: "Pendiente",
-  CONFIRMED: "Confirmada",
-  COMPLETED: "Completada",
-  CANCELLED: "Cancelada",
-  NO_SHOW: "No asistió",
-}
 
 const STATUS_COLOR: Record<BookingStatus, string> = {
   PENDING: "#f59e0b",
@@ -18,6 +18,14 @@ const STATUS_COLOR: Record<BookingStatus, string> = {
   COMPLETED: "#3b82f6",
   CANCELLED: "#9ca3af",
   NO_SHOW: "#ef4444",
+}
+
+const chartConfig: ChartConfig = {
+  PENDING: { label: "Pendiente", color: STATUS_COLOR.PENDING },
+  CONFIRMED: { label: "Confirmada", color: STATUS_COLOR.CONFIRMED },
+  COMPLETED: { label: "Completada", color: STATUS_COLOR.COMPLETED },
+  CANCELLED: { label: "Cancelada", color: STATUS_COLOR.CANCELLED },
+  NO_SHOW: { label: "No asistió", color: STATUS_COLOR.NO_SHOW },
 }
 
 interface StatusChartProps {
@@ -38,7 +46,7 @@ export function StatusChart({ data }: StatusChartProps) {
             Sin reservas en este período
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={260}>
+          <ChartContainer config={chartConfig} className="h-65 w-full">
             <PieChart>
               <Pie
                 data={data}
@@ -54,26 +62,10 @@ export function StatusChart({ data }: StatusChartProps) {
                   <Cell key={entry.status} fill={STATUS_COLOR[entry.status]} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  borderColor: "hsl(var(--border))",
-                  borderRadius: "6px",
-                }}
-                labelStyle={{ color: "hsl(var(--card-foreground))" }}
-                itemStyle={{ color: "hsl(var(--card-foreground))" }}
-                formatter={(value: unknown, name: unknown) => [
-                  String(value ?? ""),
-                  STATUS_LABEL[name as BookingStatus] ?? String(name),
-                ]}
-              />
-              <Legend
-                formatter={(value) => STATUS_LABEL[value as BookingStatus] ?? value}
-                iconType="circle"
-                iconSize={8}
-              />
+              <ChartTooltip content={<ChartTooltipContent nameKey="status" hideLabel />} />
+              <ChartLegend content={<ChartLegendContent nameKey="status" />} />
             </PieChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         )}
       </CardContent>
     </Card>

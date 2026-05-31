@@ -1,16 +1,21 @@
 "use client"
 
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 import type { MonthlyPoint } from "./types"
+
+const chartConfig: ChartConfig = {
+  count: {
+    label: "Reservas",
+    color: "hsl(var(--foreground))",
+  },
+}
 
 interface MonthlyTrendProps {
   data: MonthlyPoint[]
@@ -32,7 +37,7 @@ export function MonthlyTrend({ data, description = "Reservas de los últimos 12 
             Sin reservas en los últimos 12 meses
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={220}>
+          <ChartContainer config={chartConfig} className="h-55 w-full">
             <AreaChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="monthlyGrad" x1="0" y1="0" x2="0" y2="1">
@@ -57,16 +62,7 @@ export function MonthlyTrend({ data, description = "Reservas de los últimos 12 
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  borderColor: "hsl(var(--border))",
-                  borderRadius: "6px",
-                }}
-                labelStyle={{ color: "hsl(var(--card-foreground))" }}
-                itemStyle={{ color: "hsl(var(--card-foreground))" }}
-                formatter={(value: unknown) => [String(value ?? ""), "Reservas"]}
-              />
+              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <Area
                 type="monotone"
                 dataKey="count"
@@ -75,7 +71,7 @@ export function MonthlyTrend({ data, description = "Reservas de los últimos 12 
                 fill="url(#monthlyGrad)"
               />
             </AreaChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         )}
       </CardContent>
     </Card>

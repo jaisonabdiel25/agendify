@@ -25,6 +25,22 @@ jest.mock("recharts", () => {
   }
 })
 
+jest.mock("@/components/ui/chart", () => {
+  const R = jest.requireActual("react") as {
+    createElement: (type: unknown, props: null, ...children: unknown[]) => unknown
+    Fragment: symbol
+  }
+  return {
+    ChartContainer: ({ children }: { children: unknown }) =>
+      R.createElement(R.Fragment, null, children),
+    ChartTooltip: () => null,
+    ChartTooltipContent: () => null,
+    ChartLegend: () => null,
+    ChartLegendContent: () => null,
+    ChartStyle: () => null,
+  }
+})
+
 import { render, screen } from "@testing-library/react"
 import { StatusChart } from "@/components/modules/statistics/status-chart"
 import { DailyTrend } from "@/components/modules/statistics/daily-trend"

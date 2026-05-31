@@ -1,8 +1,21 @@
 "use client"
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart"
 import type { DailyPoint } from "./types"
+
+const chartConfig: ChartConfig = {
+  count: {
+    label: "Reservas",
+    color: "hsl(var(--foreground))",
+  },
+}
 
 interface DailyTrendProps {
   data: DailyPoint[]
@@ -23,7 +36,7 @@ export function DailyTrend({ data }: DailyTrendProps) {
             Sin reservas en este período
           </p>
         ) : (
-          <ResponsiveContainer width="100%" height={260}>
+          <ChartContainer config={chartConfig} className="h-65 w-full">
             <BarChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -43,17 +56,7 @@ export function DailyTrend({ data }: DailyTrendProps) {
                 axisLine={false}
                 tickLine={false}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  borderColor: "hsl(var(--border))",
-                  borderRadius: "6px",
-                }}
-                labelStyle={{ color: "hsl(var(--card-foreground))" }}
-                itemStyle={{ color: "hsl(var(--card-foreground))" }}
-                labelFormatter={(label) => `Día ${label}`}
-                formatter={(value: unknown) => [String(value ?? ""), "Reservas"]}
-              />
+              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
               <Bar
                 dataKey="count"
                 fill="hsl(var(--foreground))"
@@ -61,7 +64,7 @@ export function DailyTrend({ data }: DailyTrendProps) {
                 maxBarSize={20}
               />
             </BarChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         )}
       </CardContent>
     </Card>
