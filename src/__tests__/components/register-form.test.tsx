@@ -2,28 +2,22 @@
  * @jest-environment jsdom
  */
 
-jest.mock("next/navigation", () => ({ useRouter: jest.fn() }))
-jest.mock("next-auth/react", () => ({ signIn: jest.fn() }))
+const mockPush = jest.fn()
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(() => ({ push: mockPush })),
+}))
 
 jest.setTimeout(20000)
 
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { RegisterForm } from "@/components/modules/auth/register-form"
-import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
-
-const signInMock = signIn as jest.Mock
-const mockPush = jest.fn()
-const mockRefresh = jest.fn()
 
 beforeEach(() => {
   jest.clearAllMocks()
-  ;(useRouter as jest.Mock).mockReturnValue({ push: mockPush, refresh: mockRefresh })
-  signInMock.mockResolvedValue({ error: null })
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
-    json: async () => ({ id: "user-1" }),
+    json: async () => ({ ok: true, message: "Revisa tu correo para activar tu cuenta." }),
   } as Response)
 })
 
@@ -110,8 +104,8 @@ describe("RegisterForm — toggle de contraseña", () => {
   })
 })
 
-describe("RegisterForm — submit exitoso", () => {
-  it("llama fetch con los datos correctos", async () => {
+describe("RegisterForm — submit exitoso (paso de verificación)", () => {
+  it("llama fetch con los datos correctos al registrar", async () => {
     const user = userEvent.setup()
     render(<RegisterForm />)
     await fillForm(user)
@@ -124,25 +118,177 @@ describe("RegisterForm — submit exitoso", () => {
     })
   })
 
-  it("llama signIn tras el registro exitoso", async () => {
+  it("muestra el input de código tras registro exitoso", async () => {
     const user = userEvent.setup()
     render(<RegisterForm />)
     await fillForm(user)
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
     await waitFor(() => {
-      expect(signInMock).toHaveBeenCalledWith("credentials", expect.objectContaining({
-        email: "juan@test.com",
-        redirect: false,
-      }))
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
     })
   })
 
-  it("redirige a /dashboard tras registro y login exitosos", async () => {
+  it("muestra el email del usuario en la pantalla de verificación", async () => {
     const user = userEvent.setup()
     render(<RegisterForm />)
     await fillForm(user)
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith("/dashboard"))
+    await waitFor(() => {
+      expect(screen.getByText("juan@test.com")).toBeInTheDocument()
+    })
+  })
+
+  it("muestra el botón Verificar código", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Verificar código" })).toBeInTheDocument()
+    })
+  })
+
+  it("llama POST a /api/auth/verify-email con email y code al verificar", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
+    })
+
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+
+    await user.type(screen.getByLabelText("Código de verificación"), "483920")
+    await user.click(screen.getByRole("button", { name: "Verificar código" }))
+
+    await waitFor(() => {
+      const verifyCalls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]) => url === "/api/auth/verify-email"
+      )
+      expect(verifyCalls).toHaveLength(1)
+      const body = JSON.parse(verifyCalls[0][1].body)
+      expect(body.email).toBe("juan@test.com")
+      expect(body.code).toBe("483920")
+    })
+  })
+
+  it("llama router.push a /login?verified=true tras verificación exitosa", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
+    })
+
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+
+    await user.type(screen.getByLabelText("Código de verificación"), "483920")
+    await user.click(screen.getByRole("button", { name: "Verificar código" }))
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/login?verified=true")
+    })
+  })
+
+  it("muestra error cuando el código es incorrecto", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
+    })
+
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: "Código inválido." }),
+    } as Response)
+
+    await user.type(screen.getByLabelText("Código de verificación"), "000000")
+    await user.click(screen.getByRole("button", { name: "Verificar código" }))
+
+    await waitFor(() => {
+      expect(screen.getByText("Código inválido.")).toBeInTheDocument()
+    })
+  })
+
+  it("restaura el formulario al hacer clic en Volver al formulario", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Volver al formulario" })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole("button", { name: "Volver al formulario" }))
+    expect(screen.getByRole("button", { name: "Crear cuenta" })).toBeInTheDocument()
+  })
+})
+
+describe("RegisterForm — reenvío de código", () => {
+  it("muestra botón Reenviar código en la pantalla de verificación", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Reenviar código" })).toBeInTheDocument()
+    })
+  })
+
+  it("llama a /api/auth/resend-verification con el email al hacer clic en Reenviar código", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Reenviar código" })).toBeInTheDocument()
+    })
+
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+
+    await user.click(screen.getByRole("button", { name: "Reenviar código" }))
+
+    await waitFor(() => {
+      const resendCalls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]) => url === "/api/auth/resend-verification"
+      )
+      expect(resendCalls).toHaveLength(1)
+      const body = JSON.parse(resendCalls[0][1].body)
+      expect(body.email).toBe("juan@test.com")
+    })
+  })
+
+  it("muestra mensaje de confirmación tras reenviar", async () => {
+    const user = userEvent.setup()
+    render(<RegisterForm />)
+    await fillForm(user)
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Reenviar código" })).toBeInTheDocument()
+    })
+
+    ;(global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+
+    await user.click(screen.getByRole("button", { name: "Reenviar código" }))
+
+    await waitFor(() => {
+      expect(screen.getByText("Te enviamos un nuevo código.")).toBeInTheDocument()
+    })
   })
 })
 
@@ -158,17 +304,6 @@ describe("RegisterForm — errores", () => {
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
     await waitFor(() => {
       expect(screen.getByText("Código inválido")).toBeInTheDocument()
-    })
-  })
-
-  it("muestra error cuando signIn falla después del registro", async () => {
-    signInMock.mockResolvedValue({ error: "CredentialsSignin" })
-    const user = userEvent.setup()
-    render(<RegisterForm />)
-    await fillForm(user)
-    await user.click(screen.getByRole("button", { name: "Crear cuenta" }))
-    await waitFor(() => {
-      expect(screen.getByText(/Cuenta creada/i)).toBeInTheDocument()
     })
   })
 

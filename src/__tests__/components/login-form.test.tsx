@@ -19,10 +19,11 @@ const getSessionMock = getSession as jest.Mock
 const routerMock = useRouter as jest.Mock
 const mockPush = jest.fn()
 const mockRefresh = jest.fn()
+const mockReplace = jest.fn()
 
 beforeEach(() => {
   jest.clearAllMocks()
-  routerMock.mockReturnValue({ push: mockPush, refresh: mockRefresh })
+  routerMock.mockReturnValue({ push: mockPush, refresh: mockRefresh, replace: mockReplace })
   signInMock.mockResolvedValue({ error: null, code: null })
   getSessionMock.mockResolvedValue({ user: { role: "STAFF" } })
 })
@@ -100,6 +101,118 @@ describe("LoginForm — manejo de respuestas del servidor", () => {
     await waitFor(() => {
       expect(screen.getByText(/negocio no está activo/i)).toBeInTheDocument()
     })
+  })
+
+  it("muestra el paso de verificación cuando code es inactive_user", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_user" })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
+    })
+  })
+
+  it("muestra el email en el paso de verificación", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_user" })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByText("user@test.com")).toBeInTheDocument()
+    })
+  })
+
+  it("llama POST a /api/auth/verify-email con email y code al verificar desde login", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_user" })
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
+    })
+    await user.type(screen.getByLabelText("Código de verificación"), "123456")
+    await user.click(screen.getByRole("button", { name: "Verificar código" }))
+    await waitFor(() => {
+      const calls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]) => url === "/api/auth/verify-email"
+      )
+      expect(calls).toHaveLength(1)
+      const body = JSON.parse(calls[0][1].body)
+      expect(body.email).toBe("user@test.com")
+      expect(body.code).toBe("123456")
+    })
+  })
+
+  it("redirige a /login?verified=true y vuelve al login tras verificación exitosa", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_user" })
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument()
+    })
+    await user.type(screen.getByLabelText("Código de verificación"), "123456")
+    await user.click(screen.getByRole("button", { name: "Verificar código" }))
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/login?verified=true")
+      expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeInTheDocument()
+    })
+  })
+
+  it("llama a /api/auth/resend-verification con el email al reenviar desde login", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_user" })
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    } as Response)
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Reenviar código" })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole("button", { name: "Reenviar código" }))
+    await waitFor(() => {
+      const calls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]) => url === "/api/auth/resend-verification"
+      )
+      expect(calls).toHaveLength(1)
+      const body = JSON.parse(calls[0][1].body)
+      expect(body.email).toBe("user@test.com")
+    })
+  })
+
+  it("vuelve al formulario de login al hacer clic en Volver al inicio de sesión", async () => {
+    signInMock.mockResolvedValue({ error: "CredentialsSignin", code: "inactive_user" })
+    const user = userEvent.setup()
+    render(<LoginForm />)
+    await user.type(screen.getByLabelText("Correo electrónico"), "user@test.com")
+    await user.type(screen.getByLabelText("Contraseña"), "password123")
+    await user.click(screen.getByRole("button", { name: "Iniciar sesión" }))
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Volver al inicio de sesión" })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole("button", { name: "Volver al inicio de sesión" }))
+    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeInTheDocument()
   })
 
   it("muestra error de credenciales incorrectas cuando signIn retorna error genérico", async () => {

@@ -66,9 +66,12 @@ model User {
   role         UserRole @default(STAFF)
   isActive     Boolean  @default(false)
   isDeleted    Boolean  @default(false)
-  description  String?
-  avatarUrl    String?
-  createdAt    DateTime @default(now())
+  description        String?
+  avatarUrl          String?
+  createdAt          DateTime  @default(now())
+  emailVerifyToken   String?
+  emailVerifyExpires DateTime?
+  pendingBusinessId  String?
 
   business            Business?    @relation(fields: [businessId], references: [id])
   chair               Chair?

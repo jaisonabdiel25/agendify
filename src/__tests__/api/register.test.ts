@@ -10,6 +10,10 @@ jest.mock("bcryptjs", () => ({
   hash: jest.fn().mockResolvedValue("hashed_password"),
 }))
 
+jest.mock("crypto", () => ({
+  randomInt: jest.fn(() => 483920),
+}))
+
 import { POST } from "@/app/api/auth/register/route"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
@@ -40,6 +44,7 @@ const validBody = {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
   ;(prisma.$transaction as jest.Mock).mockImplementation(
     async (fn: (tx: typeof txMock) => Promise<unknown>) => fn(txMock)
   )
@@ -129,6 +134,12 @@ describe("POST /api/auth/register — registro exitoso", () => {
     expect(body.ok).toBe(true)
   })
 
+  it("retorna mensaje indicando revisar el correo", async () => {
+    const res = await POST(makeRequest(validBody))
+    const body = await res.json()
+    expect(body.message).toMatch(/correo/i)
+  })
+
   it("crea el primer usuario del negocio con rol OWNER", async () => {
     txMock.user.findFirst.mockResolvedValue(null)
     await POST(makeRequest(validBody))
@@ -139,7 +150,7 @@ describe("POST /api/auth/register — registro exitoso", () => {
     )
   })
 
-  it("crea usuarios posteriores con rol STAFF cuando ya existe un OWNER", async () => {
+  it("crea usuarios posteriores con rol STAFF cuando ya existe un usuario del negocio", async () => {
     txMock.user.findFirst.mockResolvedValue({ id: "owner-existente" })
     await POST(makeRequest(validBody))
     expect(txMock.user.create).toHaveBeenCalledWith(
@@ -149,6 +160,57 @@ describe("POST /api/auth/register — registro exitoso", () => {
     )
   })
 
+  it("crea el usuario con isActive: false", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    await POST(makeRequest(validBody))
+    expect(txMock.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ isActive: false }),
+      })
+    )
+  })
+
+  it("crea el usuario con businessId: null", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    await POST(makeRequest(validBody))
+    expect(txMock.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ businessId: null }),
+      })
+    )
+  })
+
+  it("crea el usuario con pendingBusinessId del negocio de la invitación", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    await POST(makeRequest(validBody))
+    expect(txMock.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ pendingBusinessId: "biz-1" }),
+      })
+    )
+  })
+
+  it("crea el usuario con emailVerifyToken no nulo", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    await POST(makeRequest(validBody))
+    expect(txMock.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          emailVerifyToken: expect.any(String),
+        }),
+      })
+    )
+  })
+
+  it("crea el usuario con emailVerifyExpires en el futuro", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    const before = Date.now()
+    await POST(makeRequest(validBody))
+    const createCall = (txMock.user.create as jest.Mock).mock.calls[0][0]
+    const expires: Date = createCall.data.emailVerifyExpires
+    expect(expires.getTime()).toBeGreaterThan(before)
+  })
+
   it("hashea la contraseña con factor 12 antes de guardar", async () => {
     txMock.user.findFirst.mockResolvedValue(null)
     await POST(makeRequest(validBody))
@@ -156,27 +218,6 @@ describe("POST /api/auth/register — registro exitoso", () => {
     expect(txMock.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ passwordHash: "hashed_password" }),
-      })
-    )
-  })
-
-  it("asocia el usuario al businessId de la invitación", async () => {
-    txMock.user.findFirst.mockResolvedValue(null)
-    await POST(makeRequest(validBody))
-    expect(txMock.user.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ businessId: "biz-1" }),
-      })
-    )
-  })
-
-  it("marca la invitación como utilizada con la fecha actual", async () => {
-    txMock.user.findFirst.mockResolvedValue(null)
-    await POST(makeRequest(validBody))
-    expect(txMock.invitation.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: "inv-1" },
-        data: expect.objectContaining({ usedAt: expect.any(Date) }),
       })
     )
   })
@@ -192,5 +233,81 @@ describe("POST /api/auth/register — registro exitoso", () => {
         }),
       })
     )
+  })
+
+  it("marca la invitación como utilizada con la fecha actual", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    await POST(makeRequest(validBody))
+    expect(txMock.invitation.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "inv-1" },
+        data: expect.objectContaining({ usedAt: expect.any(Date) }),
+      })
+    )
+  })
+
+  it("busca OWNER incluyendo usuarios con pendingBusinessId del mismo negocio", async () => {
+    txMock.user.findFirst.mockResolvedValue(null)
+    await POST(makeRequest(validBody))
+    expect(txMock.user.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          OR: [
+            { businessId: "biz-1" },
+            { pendingBusinessId: "biz-1" },
+          ],
+        },
+      })
+    )
+  })
+})
+
+describe("POST /api/auth/register — webhook n8n", () => {
+  beforeEach(() => {
+    ;(prisma.invitation.findUnique as jest.Mock).mockResolvedValue(mockInvitation)
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+    txMock.user.findFirst.mockResolvedValue(null)
+  })
+
+  it("llama al webhook con name, email y code cuando N8N_WEBHOOK_URL está configurado", async () => {
+    process.env.N8N_WEBHOOK_URL = "https://n8n.test/webhook/agendify-register"
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://n8n.test/webhook/agendify-register",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("juan@ejemplo.com"),
+      })
+    )
+    delete process.env.N8N_WEBHOOK_URL
+  })
+
+  it("incluye code en el cuerpo del webhook", async () => {
+    process.env.N8N_WEBHOOK_URL = "https://n8n.test/webhook/agendify-register"
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
+    const fetchBody = JSON.parse(fetchCall[1].body)
+    expect(fetchBody).toHaveProperty("code")
+    expect(typeof fetchBody.code).toBe("string")
+    expect(fetchBody).toHaveProperty("type", "register")
+    expect(fetchBody).not.toHaveProperty("verifyUrl")
+    delete process.env.N8N_WEBHOOK_URL
+  })
+
+  it("no llama a fetch si N8N_WEBHOOK_URL no está configurado", async () => {
+    delete process.env.N8N_WEBHOOK_URL
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+})
+
+describe("POST /api/auth/register — error interno", () => {
+  it("retorna 500 si prisma lanza excepción", async () => {
+    ;(prisma.invitation.findUnique as jest.Mock).mockRejectedValue(new Error("DB error"))
+    const res = await POST(makeRequest(validBody))
+    expect(res.status).toBe(500)
   })
 })

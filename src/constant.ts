@@ -19,3 +19,10 @@ export const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000
 export const PLAN_PRICE_MIN = 0
 export const PLAN_DISCOUNT_MIN = 0
 export const PLAN_DISCOUNT_MAX = 100
+
+// ─── Verificación de email ─────────────────────────────────────────────────────
+
+export const EMAIL_VERIFY_EXPIRY_HOURS = 24
+export const EMAIL_VERIFY_CODE_DIGITS = 6
+export const WEBHOOK_EVENT_REGISTER = "register"
+export const WEBHOOK_EVENT_RESEND = "resend"

@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { getSession, signIn } from "next-auth/react"
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,6 +22,13 @@ export function LoginForm() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [step, setStep] = useState<"login" | "verify">("login")
+  const [pendingEmail, setPendingEmail] = useState("")
+  const [verifyCode, setVerifyCode] = useState("")
+  const [verifyError, setVerifyError] = useState("")
+  const [verifying, setVerifying] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState("")
 
   const {
     register,
@@ -46,7 +53,8 @@ export function LoginForm() {
     }
 
     if (result?.code === "inactive_user") {
-      setServerError("Tu cuenta no está activa. Contacta al administrador del negocio.")
+      setPendingEmail(data.email)
+      setStep("verify")
       return
     }
 
@@ -58,6 +66,128 @@ export function LoginForm() {
     const session = await getSession()
     router.push(session?.user?.role === "ADMIN" ? "/admin" : "/dashboard")
     router.refresh()
+  }
+
+  async function handleVerify() {
+    setVerifying(true)
+    setVerifyError("")
+
+    const res = await fetch("/api/auth/verify-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pendingEmail, code: verifyCode }),
+    })
+
+    if (res.ok) {
+      setStep("login")
+      setVerifyCode("")
+      setVerifyError("")
+      setResendMessage("")
+      router.replace("/login?verified=true")
+    } else {
+      const data = await res.json().catch(() => ({}))
+      setVerifyError(data.error ?? "Código incorrecto.")
+      setVerifying(false)
+    }
+  }
+
+  async function handleResend() {
+    setResending(true)
+    setResendMessage("")
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pendingEmail }),
+    }).catch(() => {})
+    setResendMessage("Te enviamos un nuevo código.")
+    setResending(false)
+  }
+
+  if (step === "verify") {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-lg border border-border bg-muted/50 px-4 py-6 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+            <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+          <h3 className="text-sm font-medium text-foreground">
+            Verifica tu correo electrónico
+          </h3>
+          <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+            Enviamos un código de 6 dígitos a{" "}
+            <span className="font-medium text-foreground">{pendingEmail}</span>
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="verifyCode">Código de verificación</Label>
+          <Input
+            id="verifyCode"
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            pattern="[0-9]*"
+            placeholder="000000"
+            value={verifyCode}
+            onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
+            className="h-14 text-center text-2xl font-mono tracking-[0.5em]"
+            autoComplete="one-time-code"
+          />
+        </div>
+
+        {verifyError && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5"
+          >
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+            <p className="text-sm text-destructive">{verifyError}</p>
+          </div>
+        )}
+
+        <Button
+          type="button"
+          className="w-full h-11"
+          disabled={verifying || verifyCode.length < 6}
+          onClick={handleVerify}
+        >
+          {verifying ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verificando...
+            </>
+          ) : (
+            "Verificar código"
+          )}
+        </Button>
+
+        <div className="space-y-2 text-center">
+          {resendMessage && (
+            <p className="text-xs text-green-600 dark:text-green-400">{resendMessage}</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            ¿No lo recibiste?{" "}
+            <button
+              type="button"
+              disabled={resending}
+              className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity disabled:opacity-50"
+              onClick={handleResend}
+            >
+              {resending ? "Enviando..." : "Reenviar código"}
+            </button>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <button
+              type="button"
+              className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
+              onClick={() => setStep("login")}
+            >
+              Volver al inicio de sesión
+            </button>
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -13,7 +13,14 @@ const FEATURES = [
   "Estadísticas en tiempo real",
 ]
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ verified?: string }>
+}) {
+  const params = await searchParams
+  const verified = params.verified === "true"
+
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[1fr_480px]">
       {/* Left panel — always dark, branding */}
@@ -86,6 +93,23 @@ export default function LoginPage() {
                 Ingresa tus credenciales para continuar
               </p>
             </div>
+
+            {verified && (
+              <div className="animate-fade-up mb-6 flex items-start gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-800/40 dark:bg-green-900/20">
+                <svg
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600 dark:text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Cuenta verificada correctamente. Ya puedes iniciar sesión.
+                </p>
+              </div>
+            )}
 
             <div className="animate-fade-up [animation-delay:100ms]">
               <LoginForm />
