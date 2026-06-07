@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Calendar } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LoginForm } from "@/components/login-form"
 
@@ -7,10 +8,9 @@ export const metadata: Metadata = {
   title: "Iniciar sesión — Agendify",
 }
 
-const FEATURES = [
-  "Reservas y calendario unificado",
-  "Gestión de equipo y turnos",
-  "Estadísticas en tiempo real",
+const APPOINTMENTS = [
+  { time: "10:00", service: "Corte y barba", confirmed: true },
+  { time: "12:30", service: "Coloración", confirmed: false },
 ]
 
 export default async function LoginPage({
@@ -41,29 +41,52 @@ export default async function LoginPage({
 
         <Link
           href="/"
-          className="relative z-10 font-bold text-base text-zinc-50 tracking-tight"
+          className="animate-fade-in [animation-delay:0ms] relative z-10 font-bold text-base text-zinc-50 tracking-tight"
         >
           Agendify
         </Link>
 
         <div className="relative z-10">
-          <p className="text-[0.65rem] tracking-[0.25em] uppercase text-zinc-500 mb-5">
+          <p className="animate-fade-up [animation-delay:80ms] text-[0.65rem] tracking-[0.25em] uppercase text-zinc-500 mb-5">
             Plataforma de gestión
           </p>
-          <h2 className="font-display font-light text-5xl lg:text-6xl leading-none text-zinc-50">
+          <h2 className="animate-fade-up [animation-delay:160ms] font-display font-light text-5xl lg:text-6xl leading-none text-zinc-50">
             Tu negocio,<br />organizado.
           </h2>
-          <p className="mt-6 text-sm text-zinc-400 max-w-xs leading-relaxed">
+          <p className="animate-fade-up [animation-delay:240ms] mt-6 text-sm text-zinc-400 max-w-xs leading-relaxed">
             Reservas, equipo y clientes en un solo lugar. Sin fricciones.
           </p>
-          <ul className="mt-10 space-y-4">
-            {FEATURES.map((feature) => (
-              <li key={feature} className="flex items-center gap-3 text-sm text-zinc-500">
-                <div className="h-px w-5 bg-zinc-700 shrink-0" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+
+          {/* Mini app preview */}
+          <div className="animate-fade-up [animation-delay:360ms] mt-8">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 overflow-hidden shadow-xl">
+              <div className="px-3 py-2 border-b border-zinc-800 bg-zinc-900/80 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3 w-3 text-zinc-500" aria-hidden="true" />
+                  <span className="text-[0.6rem] font-medium text-zinc-400">Agenda · Hoy</span>
+                </div>
+                <div className="flex items-center gap-1 bg-zinc-50 text-zinc-900 text-[0.5rem] font-medium px-1.5 py-0.5 rounded-full">
+                  <span className="w-1 h-1 rounded-full bg-zinc-400" aria-hidden="true" />
+                  3 citas
+                </div>
+              </div>
+              <div className="p-2.5 space-y-1.5">
+                {APPOINTMENTS.map((appt) => (
+                  <div key={appt.time} className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/60">
+                    <span className="font-mono text-[0.55rem] text-zinc-500 w-8 shrink-0">{appt.time}</span>
+                    <span className="text-[0.65rem] text-zinc-300 flex-1">{appt.service}</span>
+                    <span
+                      className={`text-[0.5rem] uppercase px-1 py-0.5 rounded-sm font-medium ${
+                        appt.confirmed ? "bg-zinc-700 text-zinc-300" : "bg-zinc-800 text-zinc-500"
+                      }`}
+                    >
+                      {appt.confirmed ? "Confirm." : "Pend."}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         <p className="relative z-10 text-xs text-zinc-700">© 2026 Agendify</p>

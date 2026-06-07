@@ -6,7 +6,7 @@ jest.mock("@/components/theme-toggle", () => ({
   ThemeToggle: () => null,
 }))
 
-import { render, screen } from "@testing-library/react"
+import { render, screen, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { LandingHeader } from "@/components/landing-header"
 
@@ -119,5 +119,68 @@ describe("LandingHeader — menú móvil", () => {
     await user.click(screen.getByLabelText("Abrir menú"))
     await user.click(screen.getByText("Comenzar ahora →"))
     expect(screen.queryByLabelText("Cerrar menú")).not.toBeInTheDocument()
+  })
+})
+
+describe("LandingHeader — scroll awareness", () => {
+  beforeEach(() => {
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      get: jest.fn(() => 0),
+    })
+  })
+
+  it("no tiene shadow-sm en el estado inicial (sin scroll)", () => {
+    render(<LandingHeader />)
+    const header = screen.getByRole("banner")
+    expect(header.className).not.toContain("shadow-sm")
+  })
+
+  it("aplica shadow-sm al header cuando scrollY > 10", () => {
+    render(<LandingHeader />)
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      get: jest.fn(() => 20),
+    })
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    const header = screen.getByRole("banner")
+    expect(header.className).toContain("shadow-sm")
+  })
+
+  it("elimina shadow-sm al volver a scrollY <= 10", () => {
+    render(<LandingHeader />)
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      get: jest.fn(() => 20),
+    })
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      get: jest.fn(() => 0),
+    })
+    act(() => {
+      window.dispatchEvent(new Event("scroll"))
+    })
+    const header = screen.getByRole("banner")
+    expect(header.className).not.toContain("shadow-sm")
+  })
+
+  it("registra el listener de scroll con { passive: true } al montar", () => {
+    const addSpy = jest.spyOn(window, "addEventListener")
+    render(<LandingHeader />)
+    expect(addSpy).toHaveBeenCalledWith("scroll", expect.any(Function), { passive: true })
+    addSpy.mockRestore()
+  })
+
+  it("elimina el listener de scroll al desmontar", () => {
+    const removeSpy = jest.spyOn(window, "removeEventListener")
+    const { unmount } = render(<LandingHeader />)
+    unmount()
+    expect(removeSpy).toHaveBeenCalledWith("scroll", expect.any(Function))
+    removeSpy.mockRestore()
   })
 })
