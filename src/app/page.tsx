@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, BarChart3, Calendar, Check, Clock, Shield, Users, X, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LandingHeader } from "@/components/landing-header"
+import { AnimateOnScroll } from "@/components/animate-on-scroll"
 import { prisma } from "@/lib/prisma"
 
 const features = [
@@ -105,7 +106,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none" aria-hidden="true" />
         {/* Gradient fade */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-background pointer-events-none"
+          className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-b from-transparent to-background pointer-events-none"
           aria-hidden="true"
         />
 
@@ -161,7 +162,7 @@ export default async function HomePage() {
 
         {/* Product preview */}
         <div className="animate-fade-up [animation-delay:500ms] relative mt-12 sm:mt-16 w-full max-w-lg mx-auto">
-          <div className="rounded-2xl rounded-b-none border border-b-0 border-border bg-card shadow-xl overflow-hidden text-left">
+          <div className="animate-float rounded-2xl rounded-b-none border border-b-0 border-border bg-card shadow-xl overflow-hidden text-left" style={{ animationDelay: "900ms" }}>
             {/* App header bar */}
             <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -212,7 +213,12 @@ export default async function HomePage() {
       {/* Stats Band */}
       <section className="border-y border-border px-5 sm:px-6 py-6 sm:py-8 bg-muted/20">
         <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border text-center">
+          <AnimateOnScroll
+            staggerChildren
+            staggerDelay={80}
+            threshold={0.3}
+            className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border text-center"
+          >
             {[
               { value: "2 min", label: "Para configurar tu negocio" },
               { value: "∞", label: "Reservas sin límite" },
@@ -223,23 +229,27 @@ export default async function HomePage() {
                 <p className="text-xs text-muted-foreground mt-1.5">{label}</p>
               </div>
             ))}
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
 
       {/* Features */}
       <section id="features" className="border-b border-border px-5 sm:px-6 py-16 sm:py-24">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-10 sm:mb-16">
+          <AnimateOnScroll animation="slide-up" className="mb-10 sm:mb-16">
             <p className="text-[0.6rem] sm:text-[0.65rem] tracking-[0.25em] uppercase text-muted-foreground mb-3 sm:mb-4">
               Características
             </p>
             <h2 className="font-display font-light text-3xl sm:text-5xl leading-[1.05]">
               Todo lo que necesitas
             </h2>
-          </div>
+          </AnimateOnScroll>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
+          <AnimateOnScroll
+            staggerChildren
+            staggerDelay={80}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6"
+          >
             {features.map(({ number, icon: Icon, title, description }) => (
               <div
                 key={title}
@@ -259,17 +269,22 @@ export default async function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
 
       {/* Ideal para */}
       <section className="border-b border-border px-5 sm:px-6 py-12 sm:py-16">
-        <div className="max-w-4xl mx-auto">
+        <AnimateOnScroll animation="slide-up" className="max-w-4xl mx-auto">
           <p className="text-[0.6rem] sm:text-[0.65rem] tracking-[0.25em] uppercase text-muted-foreground mb-6 sm:mb-8">
             Ideal para
           </p>
-          <div className="flex flex-wrap gap-2.5">
+          <AnimateOnScroll
+            staggerChildren
+            staggerDelay={40}
+            threshold={0.1}
+            className="flex flex-wrap gap-2.5"
+          >
             {businessTypes.map((type) => (
               <span
                 key={type}
@@ -278,23 +293,27 @@ export default async function HomePage() {
                 {type}
               </span>
             ))}
-          </div>
-        </div>
+          </AnimateOnScroll>
+        </AnimateOnScroll>
       </section>
 
       {/* Pricing */}
       <section id="pricing" className="border-b border-border px-5 sm:px-6 py-16 sm:py-24">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-10 sm:mb-14">
+          <AnimateOnScroll animation="slide-up" className="mb-10 sm:mb-14">
             <p className="text-[0.6rem] sm:text-[0.65rem] tracking-[0.25em] uppercase text-muted-foreground mb-3 sm:mb-4">
               Precios
             </p>
             <h2 className="font-display font-light text-3xl sm:text-5xl leading-[1.05]">
               Simple y transparente
             </h2>
-          </div>
+          </AnimateOnScroll>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 items-start">
+          <AnimateOnScroll
+            staggerChildren
+            staggerDelay={100}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 items-start"
+          >
             {plans.map((plan) => {
               const isPro = plan.type === "PRO"
               const planFeatures = getPlanFeatures(plan)
@@ -304,7 +323,7 @@ export default async function HomePage() {
                   key={plan.id}
                   className={`relative rounded-xl border p-6 sm:p-8 flex flex-col gap-6 transition-shadow duration-200 ${
                     isPro
-                      ? "border-foreground/25 bg-foreground/[0.02] shadow-sm"
+                      ? "border-foreground/25 bg-foreground/2 shadow-sm"
                       : "border-border"
                   }`}
                 >
@@ -351,14 +370,14 @@ export default async function HomePage() {
                 </div>
               )
             })}
-          </div>
+          </AnimateOnScroll>
         </div>
       </section>
 
       {/* CTA */}
       <section className="border-b border-border px-5 sm:px-6 py-20 sm:py-32">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-display font-light text-4xl sm:text-6xl leading-[1.0]">
+        <AnimateOnScroll animation="slide-up" threshold={0.2} className="max-w-4xl mx-auto text-center">
+          <h2 className="font-display font-light text-4xl sm:text-6xl leading-none">
             ¿Listo para ordenar<br className="hidden sm:block" /> tu agenda?
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base mt-5 mb-8 max-w-sm mx-auto">
@@ -374,7 +393,7 @@ export default async function HomePage() {
               <Link href="/reserve">Reservar una cita</Link>
             </Button>
           </div>
-        </div>
+        </AnimateOnScroll>
       </section>
 
       {/* Footer */}
@@ -383,7 +402,7 @@ export default async function HomePage() {
           <div className="flex flex-col sm:flex-row justify-between gap-8">
             <div>
               <span className="font-bold text-foreground tracking-tight">Agendify</span>
-              <p className="text-xs text-muted-foreground mt-2 max-w-[200px] leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-2 max-w-50 leading-relaxed">
                 La plataforma de gestión de citas para negocios de servicio.
               </p>
             </div>

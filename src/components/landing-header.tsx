@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -8,9 +8,22 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 export function LandingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 backdrop-blur supports-backdrop-filter:bg-background/60 ${
+        scrolled
+          ? "border-border/60 bg-background/98 shadow-sm"
+          : "border-border/40 bg-background/95"
+      }`}
+    >
       <div className="max-w-5xl mx-auto px-5 sm:px-6 flex h-14 items-center justify-between">
         <Link
           href="/"
