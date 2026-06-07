@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 
 interface AnimateOnScrollProps {
   children: React.ReactNode
@@ -12,6 +12,8 @@ interface AnimateOnScrollProps {
   className?: string
   as?: React.ElementType
 }
+
+const emptySubscribe = () => () => {}
 
 export function AnimateOnScroll({
   children,
@@ -25,11 +27,7 @@ export function AnimateOnScroll({
 }: AnimateOnScrollProps) {
   const ref = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false)
 
   useEffect(() => {
     if (!mounted || !ref.current) return
