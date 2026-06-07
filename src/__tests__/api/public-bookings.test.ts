@@ -12,6 +12,7 @@ const txMock = {
   service: { findFirst: jest.fn() },
   booking: { findFirst: jest.fn(), create: jest.fn() },
   customer: { upsert: jest.fn(), create: jest.fn(), findFirst: jest.fn() },
+  business: { findUnique: jest.fn() },
 }
 
 const validBody = {
@@ -33,15 +34,22 @@ const mockBooking = {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  global.fetch = jest.fn()
+  delete process.env.N8N_BOOKING_WEBHOOK_URL
   ;(prisma.$transaction as jest.Mock).mockImplementation(
     async (fn: (tx: typeof txMock) => Promise<unknown>) => fn(txMock)
   )
-  txMock.chair.findFirst.mockResolvedValue({ id: "c-1" })
-  txMock.service.findFirst.mockResolvedValue({ id: "s-1", durationMinutes: 30 })
+  txMock.chair.findFirst.mockResolvedValue({
+    id: "c-1",
+    name: "Silla Principal",
+    user: { name: "Carlos Staff", email: "carlos@ejemplo.com" },
+  })
+  txMock.service.findFirst.mockResolvedValue({ id: "s-1", name: "Corte", durationMinutes: 30, price: "25.00" })
   txMock.booking.findFirst.mockResolvedValue(null)
   txMock.customer.findFirst.mockResolvedValue(null)
   txMock.customer.create.mockResolvedValue({ id: "cust-1" })
   txMock.customer.upsert.mockResolvedValue({ id: "cust-1" })
+  txMock.business.findUnique.mockResolvedValue({ name: "Peluquería Central" })
   txMock.booking.create.mockResolvedValue(mockBooking)
 })
 
@@ -177,5 +185,82 @@ describe("POST /api/public/bookings — reserva exitosa", () => {
         data: expect.objectContaining({ notes: "Alergia al tinte" }),
       })
     )
+  })
+})
+
+describe("POST /api/public/bookings — webhook n8n", () => {
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
+  })
+
+  it("llama al webhook cuando N8N_BOOKING_WEBHOOK_URL está configurado y el staff tiene email", async () => {
+    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://n8n.test/webhook/agendify-booking",
+      expect.objectContaining({ method: "POST" })
+    )
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
+  })
+
+  it("el payload del webhook contiene type: 'new_booking'", async () => {
+    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    const fetchBody = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string)
+    expect(fetchBody.type).toBe("new_booking")
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
+  })
+
+  it("el payload incluye datos del staff, cliente, servicio, puesto y negocio", async () => {
+    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    const fetchBody = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string)
+    expect(fetchBody).toHaveProperty("staff.email", "carlos@ejemplo.com")
+    expect(fetchBody).toHaveProperty("customer.name", "Ana García")
+    expect(fetchBody).toHaveProperty("service.name", "Corte")
+    expect(fetchBody).toHaveProperty("chair.name", "Silla Principal")
+    expect(fetchBody).toHaveProperty("business.name", "Peluquería Central")
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
+  })
+
+  it("no llama al webhook si N8N_BOOKING_WEBHOOK_URL no está configurado", async () => {
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it("no llama al webhook si el chair no tiene usuario asignado", async () => {
+    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+    txMock.chair.findFirst.mockResolvedValue({ id: "c-1", name: "Silla Sin Staff", user: null })
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(global.fetch).not.toHaveBeenCalled()
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
+  })
+
+  it("no llama al webhook si el usuario del chair no tiene email", async () => {
+    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+    txMock.chair.findFirst.mockResolvedValue({
+      id: "c-1",
+      name: "Silla A",
+      user: { name: "Staff Sin Email", email: null },
+    })
+    await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(global.fetch).not.toHaveBeenCalled()
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
+  })
+
+  it("no lanza error si el webhook falla (fire and forget)", async () => {
+    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+    global.fetch = jest.fn().mockRejectedValue(new Error("Network error"))
+    const res = await POST(makeRequest(validBody))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(res.status).toBe(201)
+    delete process.env.N8N_BOOKING_WEBHOOK_URL
   })
 })

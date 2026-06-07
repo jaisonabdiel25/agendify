@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
+import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE, WEBHOOK_EVENT_NEW_BOOKING } from "@/constant"
 
 const bookingSchema = z.object({
   businessId: z.string().min(1),
@@ -25,11 +25,20 @@ export async function POST(request: Request) {
 
   const { businessId, chairId, serviceId, date, time, name, email, phone, notes } = parsed.data
 
-  const booking = await prisma.$transaction(async (tx) => {
-    // Validate chair and service belong to the business
+  const { booking, chair, service, business } = await prisma.$transaction(async (tx) => {
     const [chair, service] = await Promise.all([
-      tx.chair.findFirst({ where: { id: chairId, businessId }, select: { id: true } }),
-      tx.service.findFirst({ where: { id: serviceId, businessId }, select: { id: true, durationMinutes: true } }),
+      tx.chair.findFirst({
+        where: { id: chairId, businessId },
+        select: {
+          id: true,
+          name: true,
+          user: { select: { name: true, email: true } },
+        },
+      }),
+      tx.service.findFirst({
+        where: { id: serviceId, businessId },
+        select: { id: true, name: true, durationMinutes: true, price: true },
+      }),
     ])
 
     if (!chair) throw new Error("Puesto no válido")
@@ -68,7 +77,12 @@ export async function POST(request: Request) {
       })
     }
 
-    return tx.booking.create({
+    const business = await tx.business.findUnique({
+      where: { id: businessId },
+      select: { name: true },
+    })
+
+    const booking = await tx.booking.create({
       data: {
         businessId,
         chairId,
@@ -81,7 +95,42 @@ export async function POST(request: Request) {
       },
       select: { id: true, startTime: true, endTime: true, status: true },
     })
+
+    return { booking, chair, service, business }
   })
+
+  const bookingWebhookUrl = process.env.N8N_BOOKING_WEBHOOK_URL
+  if (bookingWebhookUrl && chair.user?.email) {
+    fetch(bookingWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: WEBHOOK_EVENT_NEW_BOOKING,
+        booking: {
+          id: booking.id,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          notes: notes ?? null,
+        },
+        staff: {
+          name: chair.user.name,
+          email: chair.user.email,
+        },
+        customer: {
+          name,
+          email: email || null,
+          phone,
+        },
+        service: {
+          name: service.name,
+          durationMinutes: service.durationMinutes,
+          price: service.price,
+        },
+        chair: { name: chair.name },
+        business: { name: business?.name ?? "" },
+      }),
+    }).catch(() => {})
+  }
 
   return NextResponse.json(booking, { status: 201 })
 }

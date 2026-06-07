@@ -26,3 +26,4 @@ export const EMAIL_VERIFY_EXPIRY_HOURS = 24
 export const EMAIL_VERIFY_CODE_DIGITS = 6
 export const WEBHOOK_EVENT_REGISTER = "register"
 export const WEBHOOK_EVENT_RESEND = "resend"
+export const WEBHOOK_EVENT_NEW_BOOKING = "new_booking"
