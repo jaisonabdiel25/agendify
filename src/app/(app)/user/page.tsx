@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { UserProfileCard } from "@/components/modules/user/edit-user-form"
+import { ChangePasswordForm } from "@/components/modules/user/change-password-form"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
@@ -61,6 +62,7 @@ export default async function UserPage() {
           </div>
 
           <UserProfileCard user={{ id: user.id, name: user.name, description: user.description }} />
+          <ChangePasswordForm />
         </div>
       </div>
     </div>

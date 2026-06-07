@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { PlansTable } from "@/components/modules/admin/plans-table"
 import { PlanFormDialog } from "@/components/modules/admin/plan-form-dialog"
+import { AdminMobileNav } from "@/components/modules/admin/admin-mobile-nav"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
@@ -54,17 +55,24 @@ export default async function AdminPlansPage() {
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <nav aria-label="Navegación de admin" className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Link href="/" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
-              Agendify
-            </Link>
-            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
-            <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
-              Panel Admin
-            </Link>
-            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
-            <span className="text-sm truncate" aria-current="page">Planes</span>
-          </nav>
+          <div className="flex items-center gap-2 min-w-0">
+            <AdminMobileNav />
+            <nav aria-label="Navegación de admin" className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <Link href="/" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
+                Agendify
+              </Link>
+              <span className="hidden sm:inline text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+              <Link href="/admin" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                Panel Admin
+              </Link>
+              <span className="hidden sm:inline text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+              <span className="hidden sm:inline text-sm truncate" aria-current="page">Planes</span>
+              <span className="hidden sm:inline text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+              <Link href="/admin/profile" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                Mi perfil
+              </Link>
+            </nav>
+          </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <form action={async () => {
               "use server"
