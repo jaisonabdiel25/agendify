@@ -9,6 +9,7 @@ import { CreateInvitationForm } from "@/components/modules/admin/create-invitati
 import { BusinessActiveToggle } from "@/components/modules/admin/business-active-toggle"
 import { BusinessesSearch } from "@/components/modules/admin/businesses-search"
 import { BusinessesPagination } from "@/components/modules/admin/businesses-pagination"
+import { AdminMobileNav } from "@/components/modules/admin/admin-mobile-nav"
 
 export const metadata: Metadata = {
   title: "Admin — Agendify",
@@ -42,9 +43,9 @@ export default async function AdminPage({
         isActive: true,
         createdAt: true,
         bookings: {
-          orderBy: { startTime: "desc" },
+          orderBy: { createdAt: "desc" },
           take: 1,
-          select: { startTime: true },
+          select: { createdAt: true },
         },
       },
     }),
@@ -74,8 +75,8 @@ export default async function AdminPage({
   ])
 
   allFilteredBusinesses.sort((a, b) => {
-    const dateA = a.bookings[0]?.startTime?.getTime() ?? 0
-    const dateB = b.bookings[0]?.startTime?.getTime() ?? 0
+    const dateA = a.bookings[0]?.createdAt?.getTime() ?? 0
+    const dateB = b.bookings[0]?.createdAt?.getTime() ?? 0
     return dateB - dateA
   })
 
@@ -89,17 +90,24 @@ export default async function AdminPage({
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border px-4 sm:px-6 py-3 sm:py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <nav aria-label="Navegación de admin" className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <Link href="/" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
-              Agendify
-            </Link>
-            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
-            <span className="text-sm text-muted-foreground truncate" aria-current="page">Panel Admin</span>
-            <span className="text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
-            <Link href="/admin/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
-              Planes
-            </Link>
-          </nav>
+          <div className="flex items-center gap-2 min-w-0">
+            <AdminMobileNav />
+            <nav aria-label="Navegación de admin" className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <Link href="/" className="font-bold text-base tracking-tight shrink-0 hover:opacity-80 transition-opacity">
+                Agendify
+              </Link>
+              <span className="hidden sm:inline text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+              <span className="hidden sm:inline text-sm text-muted-foreground" aria-current="page">Panel Admin</span>
+              <span className="hidden sm:inline text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+              <Link href="/admin/plans" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                Planes
+              </Link>
+              <span className="hidden sm:inline text-muted-foreground/40 shrink-0" aria-hidden="true">·</span>
+              <Link href="/admin/profile" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                Mi perfil
+              </Link>
+            </nav>
+          </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <form action={async () => {
               "use server"
@@ -194,7 +202,7 @@ export default async function AdminPage({
                         </td>
                         <td className="hidden sm:table-cell px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                           {b.bookings[0]
-                            ? new Date(b.bookings[0].startTime).toLocaleDateString("es-PA")
+                            ? new Date(b.bookings[0].createdAt).toLocaleDateString("es-PA")
                             : <span className="text-muted-foreground/50">—</span>
                           }
                         </td>
