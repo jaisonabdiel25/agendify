@@ -13,6 +13,8 @@ describe("isPublicPath", () => {
     "/api/public/businesses",
     "/api/public/services",
     "/api/public/availability",
+    "/api/auth/forgot-password",
+    "/api/auth/reset-password",
   ])("considera '%s' pública por prefijo", (path) => {
     expect(isPublicPath(path)).toBe(true)
   })

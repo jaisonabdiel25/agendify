@@ -123,6 +123,15 @@ describe("POST /api/auth/resend-verification — reenvío exitoso", () => {
     await new Promise((r) => setTimeout(r, 0))
     expect(global.fetch).not.toHaveBeenCalled()
   })
+
+  it("retorna 200 aunque el webhook falle (fire-and-forget)", async () => {
+    process.env.N8N_WEBHOOK_URL = "https://n8n.test/webhook/agendify-register"
+    ;(global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"))
+    const res = await POST(makeRequest({ email: "juan@test.com" }))
+    await new Promise((r) => setTimeout(r, 0))
+    expect(res.status).toBe(200)
+    delete process.env.N8N_WEBHOOK_URL
+  })
 })
 
 describe("POST /api/auth/resend-verification — error interno", () => {

@@ -1,5 +1,5 @@
 const PUBLIC_PATHS = ["/", "/login", "/register"] as const
-const PUBLIC_PREFIXES = ["/reserve", "/api/public", "/api/auth/verify-email", "/api/auth/resend-verification"] as const
+const PUBLIC_PREFIXES = ["/reserve", "/api/public", "/api/auth/verify-email", "/api/auth/resend-verification", "/api/auth/forgot-password", "/api/auth/reset-password"] as const
 
 export function isPublicPath(pathname: string): boolean {
   return (

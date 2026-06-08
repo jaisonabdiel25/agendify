@@ -27,3 +27,9 @@ export const EMAIL_VERIFY_CODE_DIGITS = 6
 export const WEBHOOK_EVENT_REGISTER = "register"
 export const WEBHOOK_EVENT_RESEND = "resend"
 export const WEBHOOK_EVENT_NEW_BOOKING = "new_booking"
+
+// ─── Restablecimiento de contraseña ───────────────────────────────────────────
+
+export const PASSWORD_RESET_EXPIRY_HOURS = 1
+export const PASSWORD_RESET_CODE_DIGITS = 6
+export const WEBHOOK_EVENT_PASSWORD_RESET = "password_reset"

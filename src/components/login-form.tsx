@@ -17,18 +17,41 @@ const schema = z.object({
 })
 
 type FormValues = z.infer<typeof schema>
+type Step = "login" | "verify" | "forgot" | "forgot-code"
+
+const FORGOT_INITIAL = {
+  email: "",
+  code: "",
+  password: "",
+  confirm: "",
+  loading: false,
+  resetting: false,
+  error: "",
+  resetError: "",
+  showPassword: false,
+  showConfirm: false,
+}
 
 export function LoginForm() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-  const [step, setStep] = useState<"login" | "verify">("login")
+  const [step, setStep] = useState<Step>("login")
   const [pendingEmail, setPendingEmail] = useState("")
   const [verifyCode, setVerifyCode] = useState("")
   const [verifyError, setVerifyError] = useState("")
   const [verifying, setVerifying] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendMessage, setResendMessage] = useState("")
+  const [forgot, setForgot] = useState(FORGOT_INITIAL)
+
+  const upForgot = (patch: Partial<typeof forgot>) =>
+    setForgot((s) => ({ ...s, ...patch }))
+
+  function exitForgot() {
+    setStep("login")
+    setForgot(FORGOT_INITIAL)
+  }
 
   const {
     register,
@@ -101,6 +124,242 @@ export function LoginForm() {
     }).catch(() => {})
     setResendMessage("Te enviamos un nuevo código.")
     setResending(false)
+  }
+
+  async function handleForgotRequest() {
+    upForgot({ loading: true, error: "" })
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgot.email }),
+      })
+      setStep("forgot-code")
+    } catch {
+      upForgot({ error: "Error al enviar. Intenta de nuevo." })
+    } finally {
+      upForgot({ loading: false })
+    }
+  }
+
+  async function handleForgotReset() {
+    if (forgot.password !== forgot.confirm) {
+      upForgot({ resetError: "Las contraseñas no coinciden." })
+      return
+    }
+    upForgot({ resetting: true, resetError: "" })
+    const res = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: forgot.email, code: forgot.code, password: forgot.password }),
+    })
+    if (res.ok) {
+      exitForgot()
+      router.replace("/login?reset=true")
+    } else {
+      const data = await res.json().catch(() => ({}))
+      upForgot({
+        resetError: data.error ?? "Error al actualizar. Intenta de nuevo.",
+        resetting: false,
+      })
+    }
+  }
+
+  if (step === "forgot") {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-lg border border-border bg-muted/50 px-4 py-6 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-sm font-medium text-foreground">¿Olvidaste tu contraseña?</h3>
+          <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+            Ingresa tu correo y te enviaremos un código para restablecerla
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="forgotEmail">Correo electrónico</Label>
+          <Input
+            id="forgotEmail"
+            type="email"
+            placeholder="tu@empresa.com"
+            autoComplete="email"
+            className="h-11"
+            value={forgot.email}
+            onChange={(e) => upForgot({ email: e.target.value })}
+          />
+        </div>
+
+        {forgot.error && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5"
+          >
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+            <p className="text-sm text-destructive">{forgot.error}</p>
+          </div>
+        )}
+
+        <Button
+          type="button"
+          className="w-full h-11"
+          disabled={forgot.loading || !forgot.email}
+          onClick={handleForgotRequest}
+        >
+          {forgot.loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Enviando...
+            </>
+          ) : (
+            "Enviar código"
+          )}
+        </Button>
+
+        <p className="text-center text-xs text-muted-foreground">
+          <button
+            type="button"
+            className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
+            onClick={exitForgot}
+          >
+            Volver al inicio de sesión
+          </button>
+        </p>
+      </div>
+    )
+  }
+
+  if (step === "forgot-code") {
+    return (
+      <div className="space-y-5">
+        <div className="rounded-lg border border-border bg-muted/50 px-4 py-6 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="text-sm font-medium text-foreground">Revisa tu correo</h3>
+          <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+            Enviamos un código de 6 dígitos a{" "}
+            <span className="font-medium text-foreground">{forgot.email}</span>
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="resetCode">Código de verificación</Label>
+          <Input
+            id="resetCode"
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            pattern="[0-9]*"
+            placeholder="000000"
+            value={forgot.code}
+            onChange={(e) => upForgot({ code: e.target.value.replace(/\D/g, "") })}
+            className="h-14 text-center text-2xl font-mono tracking-[0.5em]"
+            autoComplete="one-time-code"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="resetPassword">Nueva contraseña</Label>
+          <div className="relative">
+            <Input
+              id="resetPassword"
+              type={forgot.showPassword ? "text" : "password"}
+              placeholder="Mínimo 8 caracteres"
+              className="h-11 pr-10"
+              value={forgot.password}
+              onChange={(e) => upForgot({ password: e.target.value })}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => upForgot({ showPassword: !forgot.showPassword })}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={forgot.showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {forgot.showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="resetConfirm">Confirmar contraseña</Label>
+          <div className="relative">
+            <Input
+              id="resetConfirm"
+              type={forgot.showConfirm ? "text" : "password"}
+              placeholder="Repite la contraseña"
+              className="h-11 pr-10"
+              value={forgot.confirm}
+              onChange={(e) => upForgot({ confirm: e.target.value })}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => upForgot({ showConfirm: !forgot.showConfirm })}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={forgot.showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {forgot.showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        {forgot.resetError && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5"
+          >
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
+            <p className="text-sm text-destructive">{forgot.resetError}</p>
+          </div>
+        )}
+
+        <Button
+          type="button"
+          className="w-full h-11"
+          disabled={
+            forgot.resetting ||
+            forgot.code.length < 6 ||
+            forgot.password.length < 8 ||
+            !forgot.confirm
+          }
+          onClick={handleForgotReset}
+        >
+          {forgot.resetting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Actualizando...
+            </>
+          ) : (
+            "Restablecer contraseña"
+          )}
+        </Button>
+
+        <div className="space-y-2 text-center">
+          <p className="text-xs text-muted-foreground">
+            ¿No recibiste el código?{" "}
+            <button
+              type="button"
+              className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
+              onClick={() => setStep("forgot")}
+            >
+              Volver a intentar
+            </button>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <button
+              type="button"
+              className="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
+              onClick={exitForgot}
+            >
+              Volver al inicio de sesión
+            </button>
+          </p>
+        </div>
+      </div>
+    )
   }
 
   if (step === "verify") {
@@ -213,8 +472,8 @@ export function LoginForm() {
           <Label htmlFor="password">Contraseña</Label>
           <button
             type="button"
-            tabIndex={-1}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setStep("forgot")}
           >
             ¿Olvidaste tu contraseña?
           </button>

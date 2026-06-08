@@ -16,10 +16,11 @@ const APPOINTMENTS = [
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ verified?: string }>
+  searchParams: Promise<{ verified?: string; reset?: string }>
 }) {
   const params = await searchParams
   const verified = params.verified === "true"
+  const reset = params.reset === "true"
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[1fr_480px]">
@@ -130,6 +131,23 @@ export default async function LoginPage({
                 </svg>
                 <p className="text-sm text-green-700 dark:text-green-300">
                   Cuenta verificada correctamente. Ya puedes iniciar sesión.
+                </p>
+              </div>
+            )}
+
+            {reset && (
+              <div className="animate-fade-up mb-6 flex items-start gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-800/40 dark:bg-green-900/20">
+                <svg
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600 dark:text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Contraseña actualizada correctamente. Ya puedes iniciar sesión.
                 </p>
               </div>
             )}

@@ -69,9 +69,11 @@ model User {
   description        String?
   avatarUrl          String?
   createdAt          DateTime  @default(now())
-  emailVerifyToken   String?
-  emailVerifyExpires DateTime?
-  pendingBusinessId  String?
+  emailVerifyToken     String?
+  emailVerifyExpires   DateTime?
+  pendingBusinessId    String?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
 
   business            Business?    @relation(fields: [businessId], references: [id])
   chair               Chair?
