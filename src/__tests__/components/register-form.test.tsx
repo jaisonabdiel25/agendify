@@ -9,7 +9,7 @@ jest.mock("next/navigation", () => ({
 
 jest.setTimeout(20000)
 
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, fireEvent } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { RegisterForm } from "@/components/modules/auth/register-form"
 
@@ -162,7 +162,7 @@ describe("RegisterForm — submit exitoso (paso de verificación)", () => {
       json: async () => ({ ok: true }),
     } as Response)
 
-    await user.type(screen.getByLabelText("Código de verificación"), "483920")
+    fireEvent.change(screen.getByLabelText("Código de verificación"), { target: { value: "483920" } })
     await user.click(screen.getByRole("button", { name: "Verificar código" }))
 
     await waitFor(() => {
@@ -190,7 +190,7 @@ describe("RegisterForm — submit exitoso (paso de verificación)", () => {
       json: async () => ({ ok: true }),
     } as Response)
 
-    await user.type(screen.getByLabelText("Código de verificación"), "483920")
+    fireEvent.change(screen.getByLabelText("Código de verificación"), { target: { value: "483920" } })
     await user.click(screen.getByRole("button", { name: "Verificar código" }))
 
     await waitFor(() => {
@@ -212,7 +212,7 @@ describe("RegisterForm — submit exitoso (paso de verificación)", () => {
       json: async () => ({ error: "Código inválido." }),
     } as Response)
 
-    await user.type(screen.getByLabelText("Código de verificación"), "000000")
+    fireEvent.change(screen.getByLabelText("Código de verificación"), { target: { value: "000000" } })
     await user.click(screen.getByRole("button", { name: "Verificar código" }))
 
     await waitFor(() => {

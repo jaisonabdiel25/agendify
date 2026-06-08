@@ -1,15 +1,3 @@
-// eslint-disable-next-line no-var
-var mockSend: jest.Mock
-
-jest.mock("resend", () => {
-  mockSend = jest.fn()
-  return {
-    Resend: jest.fn().mockImplementation(() => ({
-      emails: { send: mockSend },
-    })),
-  }
-})
-
 import { POST } from "@/app/api/contact/route"
 
 const validBody = {
@@ -28,7 +16,12 @@ function makeRequest(body: unknown) {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  mockSend.mockResolvedValue({ data: { id: "email-1" }, error: null })
+  global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
+  process.env.N8N_CONTACT_WEBHOOK_URL = "https://n8n.test/webhook/agendify-contact"
+})
+
+afterEach(() => {
+  delete process.env.N8N_CONTACT_WEBHOOK_URL
 })
 
 describe("POST /api/contact — validación", () => {
@@ -87,36 +80,39 @@ describe("POST /api/contact — envío exitoso", () => {
     expect(body.ok).toBe(true)
   })
 
-  it("llama a resend.emails.send con el email del contacto", async () => {
+  it("llama al webhook de N8N con el payload correcto", async () => {
     await POST(makeRequest(validBody))
-    expect(mockSend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        subject: expect.stringContaining("usuario@ejemplo.com"),
-      })
+    expect(global.fetch).toHaveBeenCalledWith(
+      "https://n8n.test/webhook/agendify-contact",
+      expect.objectContaining({ method: "POST" })
     )
-  })
-
-  it("incluye el teléfono y el mensaje en el HTML del correo", async () => {
-    await POST(makeRequest(validBody))
-    expect(mockSend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        html: expect.stringContaining("61234567"),
-      })
+    const fetchBody = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[0][1].body
     )
+    expect(fetchBody.email).toBe("usuario@ejemplo.com")
+    expect(fetchBody.phone).toBe("61234567")
+    expect(fetchBody.message).toBe(validBody.message)
+    expect(fetchBody.to).toBeDefined()
   })
 })
 
-describe("POST /api/contact — error de Resend", () => {
-  it("retorna 500 cuando Resend devuelve un error", async () => {
-    mockSend.mockResolvedValue({ data: null, error: { message: "API error" } })
+describe("POST /api/contact — error del webhook", () => {
+  it("retorna 500 cuando el webhook responde con error HTTP", async () => {
+    ;(global.fetch as jest.Mock).mockResolvedValue({ ok: false } as Response)
     const res = await POST(makeRequest(validBody))
     expect(res.status).toBe(500)
     const body = await res.json()
     expect(body.error).toMatch(/enviar/i)
   })
 
-  it("retorna 500 cuando Resend lanza una excepción", async () => {
-    mockSend.mockRejectedValue(new Error("Network error"))
+  it("retorna 500 cuando fetch lanza una excepción", async () => {
+    ;(global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"))
+    const res = await POST(makeRequest(validBody))
+    expect(res.status).toBe(500)
+  })
+
+  it("retorna 500 cuando N8N_CONTACT_WEBHOOK_URL no está configurado", async () => {
+    delete process.env.N8N_CONTACT_WEBHOOK_URL
     const res = await POST(makeRequest(validBody))
     expect(res.status).toBe(500)
   })

@@ -8,7 +8,7 @@ jest.mock("next-auth/react", () => ({
   getSession: jest.fn(),
 }))
 
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, fireEvent } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { LoginForm } from "@/components/login-form"
 import { signIn, getSession } from "next-auth/react"
@@ -331,7 +331,7 @@ describe("LoginForm — flujo ¿Olvidaste tu contraseña?", () => {
     await user.type(screen.getByLabelText("Correo electrónico"), "ana@test.com")
     await user.click(screen.getByRole("button", { name: "Enviar código" }))
     await waitFor(() => expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument())
-    await user.type(screen.getByLabelText("Código de verificación"), "123456")
+    fireEvent.change(screen.getByLabelText("Código de verificación"), { target: { value: "123456" } })
     await user.type(screen.getByLabelText("Nueva contraseña"), "nuevapass123")
     await user.type(screen.getByLabelText("Confirmar contraseña"), "nuevapass123")
     await user.click(screen.getByRole("button", { name: "Restablecer contraseña" }))
@@ -350,7 +350,7 @@ describe("LoginForm — flujo ¿Olvidaste tu contraseña?", () => {
     await user.type(screen.getByLabelText("Correo electrónico"), "ana@test.com")
     await user.click(screen.getByRole("button", { name: "Enviar código" }))
     await waitFor(() => expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument())
-    await user.type(screen.getByLabelText("Código de verificación"), "123456")
+    fireEvent.change(screen.getByLabelText("Código de verificación"), { target: { value: "123456" } })
     await user.type(screen.getByLabelText("Nueva contraseña"), "nuevapass123")
     await user.type(screen.getByLabelText("Confirmar contraseña"), "diferente123")
     await user.click(screen.getByRole("button", { name: "Restablecer contraseña" }))
@@ -374,7 +374,7 @@ describe("LoginForm — flujo ¿Olvidaste tu contraseña?", () => {
     await user.type(screen.getByLabelText("Correo electrónico"), "ana@test.com")
     await user.click(screen.getByRole("button", { name: "Enviar código" }))
     await waitFor(() => expect(screen.getByLabelText("Código de verificación")).toBeInTheDocument())
-    await user.type(screen.getByLabelText("Código de verificación"), "999999")
+    fireEvent.change(screen.getByLabelText("Código de verificación"), { target: { value: "999999" } })
     await user.type(screen.getByLabelText("Nueva contraseña"), "nuevapass123")
     await user.type(screen.getByLabelText("Confirmar contraseña"), "nuevapass123")
     await user.click(screen.getByRole("button", { name: "Restablecer contraseña" }))

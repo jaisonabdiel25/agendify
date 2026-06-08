@@ -9,6 +9,7 @@ import { Eye, EyeOff, Loader2, AlertCircle, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 
 const schema = z
   .object({
@@ -117,20 +118,27 @@ export function RegisterForm() {
           </p>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2 flex flex-col items-center">
           <Label htmlFor="verifyCode">Código de verificación</Label>
-          <Input
+          <InputOTP
             id="verifyCode"
-            type="text"
-            inputMode="numeric"
             maxLength={6}
-            pattern="[0-9]*"
-            placeholder="000000"
             value={verifyCode}
-            onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ""))}
-            className="h-14 text-center text-2xl font-mono tracking-[0.5em]"
+            onChange={setVerifyCode}
             autoComplete="one-time-code"
-          />
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
 
         {verifyError && (

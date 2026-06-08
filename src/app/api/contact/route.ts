@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { Resend } from "resend"
 import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
-import { contactEmailHtml } from "./template"
 
 const contactSchema = z.object({
   email: z.string().email({ message: "Ingresa un correo válido." }),
@@ -27,16 +25,22 @@ export async function POST(request: Request) {
 
     const { email, phone, message } = parsed.data
     const contactEmail = process.env.CONTACT_EMAIL ?? "hola@agendify.app"
+    const webhookUrl = process.env.N8N_CONTACT_WEBHOOK_URL
 
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    const { error } = await resend.emails.send({
-      from: "Agendify <onboarding@resend.dev>",
-      to: contactEmail,
-      subject: `Nuevo mensaje de contacto — ${email}`,
-      html: contactEmailHtml({ email, phone, message }),
+    if (!webhookUrl) {
+      return NextResponse.json(
+        { error: "No se pudo enviar el mensaje. Intenta de nuevo." },
+        { status: 500 }
+      )
+    }
+
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, phone, message, to: contactEmail }),
     })
 
-    if (error) {
+    if (!response.ok) {
       return NextResponse.json(
         { error: "No se pudo enviar el mensaje. Intenta de nuevo." },
         { status: 500 }
