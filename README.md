@@ -6,7 +6,7 @@ Plataforma SaaS multi-tenant para gestión de negocios de servicios (barberías,
 
 - **Framework:** Next.js 16 (App Router) + React 19 + TypeScript
 - **Base de datos:** PostgreSQL con Prisma 7 (`PrismaPg` adapter)
-- **Auth:** NextAuth v5 beta — sesión JWT con roles (OWNER / ADMIN / STAFF)
+- **Auth:** NextAuth v5 beta — sesión JWT con roles (OWNER / ADMIN / STAFF), verificación de email por OTP, restablecimiento de contraseña, cambio de contraseña
 - **UI:** Tailwind CSS v4 + shadcn/ui + Lucide React + Recharts
 - **Formularios:** react-hook-form + Zod
 - **Notificaciones:** Sonner
@@ -63,17 +63,23 @@ pnpm prisma studio            # UI visual de la base de datos
 | Ruta | Descripción | Roles |
 |---|---|---|
 | `/` | Landing pública | Público |
-| `/reserve` | Wizard de reserva pública | Público |
-| `/login` / `/register` | Acceso | Público |
+| `/contactanos` | Formulario de contacto | Público |
+| `/reserve` | Búsqueda de negocios para reservar | Público |
+| `/reserve/[slug]` | Wizard de reserva directa por negocio | Público |
+| `/login` / `/register` | Acceso e invitación | Público |
 | `/dashboard` | Calendario de reservas | Todos |
 | `/booking` | Tabla de reservas | Todos |
+| `/booking/new` | Nueva reserva manual | Todos |
 | `/schedule` | Cronograma de horarios | Todos |
 | `/statistics` | Estadísticas del negocio | OWNER / ADMIN |
 | `/chair` | Gestión de puestos | OWNER / ADMIN |
 | `/service` | Gestión de servicios | OWNER / ADMIN |
 | `/business` | Configuración del negocio | OWNER / ADMIN |
 | `/user` | Perfil de usuario | Todos |
+| `/user/admin` | Gestión del equipo | OWNER / ADMIN |
 | `/admin` | Panel de super-admin | Super-admin |
+| `/admin/plans` | Gestión de planes | Super-admin |
+| `/admin/profile` | Perfil del administrador | Super-admin |
 
 ## Planes
 
