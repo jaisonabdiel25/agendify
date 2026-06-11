@@ -51,4 +51,12 @@ describe("UserMenu — dropdown", () => {
     await user.click(screen.getByText("Juan"))
     expect(screen.getByText("Cerrar sesión")).toBeInTheDocument()
   })
+
+  it("muestra el enlace de Ayuda apuntando a /help al abrir el menú", async () => {
+    const user = userEvent.setup()
+    render(<UserMenu userName="Juan Pérez" signOutAction={signOutAction} />)
+    await user.click(screen.getByText("Juan"))
+    const helpLink = screen.getByRole("menuitem", { name: /Ayuda/i })
+    expect(helpLink).toHaveAttribute("href", "/help")
+  })
 })

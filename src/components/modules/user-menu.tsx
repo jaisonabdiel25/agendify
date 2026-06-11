@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronDown, User } from "lucide-react"
+import { ChevronDown, User, HelpCircle } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,12 @@ export function UserMenu({ userName, signOutAction }: UserMenuProps) {
           <Link href="/user" className="flex items-center gap-2 cursor-pointer">
             <User className="h-3.5 w-3.5" />
             Mi perfil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/help" className="flex items-center gap-2 cursor-pointer">
+            <HelpCircle className="h-3.5 w-3.5" />
+            Ayuda
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
