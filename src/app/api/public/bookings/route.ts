@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE, WEBHOOK_EVENT_NEW_BOOKING } from "@/constant"
+import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
+import { isMailConfigured, sendBookingNotificationEmail } from "@/lib/mailer"
 
 const bookingSchema = z.object({
   businessId: z.string().min(1),
@@ -99,36 +100,30 @@ export async function POST(request: Request) {
     return { booking, chair, service, business }
   })
 
-  const bookingWebhookUrl = process.env.N8N_BOOKING_WEBHOOK_URL
-  if (bookingWebhookUrl && chair.user?.email) {
-    fetch(bookingWebhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: WEBHOOK_EVENT_NEW_BOOKING,
-        booking: {
-          id: booking.id,
-          startTime: booking.startTime,
-          endTime: booking.endTime,
-          notes: notes ?? null,
-        },
-        staff: {
-          name: chair.user.name,
-          email: chair.user.email,
-        },
-        customer: {
-          name,
-          email: email || null,
-          phone,
-        },
-        service: {
-          name: service.name,
-          durationMinutes: service.durationMinutes,
-          price: service.price,
-        },
-        chair: { name: chair.name },
-        business: { name: business?.name ?? "" },
-      }),
+  if (isMailConfigured() && chair.user?.email) {
+    sendBookingNotificationEmail({
+      booking: {
+        id: booking.id,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        notes: notes ?? null,
+      },
+      staff: {
+        name: chair.user.name,
+        email: chair.user.email,
+      },
+      customer: {
+        name,
+        email: email || null,
+        phone,
+      },
+      service: {
+        name: service.name,
+        durationMinutes: service.durationMinutes,
+        price: service.price,
+      },
+      chair: { name: chair.name },
+      business: { name: business?.name ?? "" },
     }).catch(() => {})
   }
 

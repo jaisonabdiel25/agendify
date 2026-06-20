@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma"
 import {
   PASSWORD_RESET_CODE_DIGITS,
   PASSWORD_RESET_EXPIRY_HOURS,
-  WEBHOOK_EVENT_PASSWORD_RESET,
 } from "@/constant"
+import { isMailConfigured, sendPasswordResetEmail } from "@/lib/mailer"
 
 const schema = z.object({
   email: z.string().email(),
@@ -44,17 +44,11 @@ export async function POST(request: Request) {
       data: { passwordResetToken, passwordResetExpires },
     })
 
-    const webhookUrl = process.env.N8N_PASSWORD_RESET_WEBHOOK_URL
-    if (webhookUrl) {
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: user.name,
-          email,
-          code: passwordResetToken,
-          type: WEBHOOK_EVENT_PASSWORD_RESET,
-        }),
+    if (isMailConfigured()) {
+      sendPasswordResetEmail({
+        name: user.name,
+        email,
+        code: passwordResetToken,
       }).catch(() => {})
     }
 

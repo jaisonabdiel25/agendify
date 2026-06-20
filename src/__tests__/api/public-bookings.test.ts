@@ -4,8 +4,14 @@ jest.mock("@/lib/prisma", () => ({
   },
 }))
 
+jest.mock("@/lib/mailer", () => ({
+  isMailConfigured: jest.fn(() => true),
+  sendBookingNotificationEmail: jest.fn().mockResolvedValue(undefined),
+}))
+
 import { POST } from "@/app/api/public/bookings/route"
 import { prisma } from "@/lib/prisma"
+import { isMailConfigured, sendBookingNotificationEmail } from "@/lib/mailer"
 
 const txMock = {
   chair: { findFirst: jest.fn() },
@@ -34,8 +40,8 @@ const mockBooking = {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  global.fetch = jest.fn()
-  delete process.env.N8N_BOOKING_WEBHOOK_URL
+  ;(isMailConfigured as jest.Mock).mockReturnValue(true)
+  ;(sendBookingNotificationEmail as jest.Mock).mockResolvedValue(undefined)
   ;(prisma.$transaction as jest.Mock).mockImplementation(
     async (fn: (tx: typeof txMock) => Promise<unknown>) => fn(txMock)
   )
@@ -188,62 +194,39 @@ describe("POST /api/public/bookings — reserva exitosa", () => {
   })
 })
 
-describe("POST /api/public/bookings — webhook n8n", () => {
-  beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
-  })
-
-  it("llama al webhook cuando N8N_BOOKING_WEBHOOK_URL está configurado y el staff tiene email", async () => {
-    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+describe("POST /api/public/bookings — notificación por correo", () => {
+  it("envía la notificación cuando SMTP está configurado y el staff tiene email", async () => {
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://n8n.test/webhook/agendify-booking",
-      expect.objectContaining({ method: "POST" })
-    )
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
+    expect(sendBookingNotificationEmail).toHaveBeenCalledTimes(1)
   })
 
-  it("el payload del webhook contiene type: 'new_booking'", async () => {
-    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+  it("incluye datos del staff, cliente, servicio, puesto y negocio en el payload", async () => {
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    const fetchBody = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string)
-    expect(fetchBody.type).toBe("new_booking")
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
+    const arg = (sendBookingNotificationEmail as jest.Mock).mock.calls[0][0]
+    expect(arg).toHaveProperty("staff.email", "carlos@ejemplo.com")
+    expect(arg).toHaveProperty("customer.name", "Ana García")
+    expect(arg).toHaveProperty("service.name", "Corte")
+    expect(arg).toHaveProperty("chair.name", "Silla Principal")
+    expect(arg).toHaveProperty("business.name", "Peluquería Central")
   })
 
-  it("el payload incluye datos del staff, cliente, servicio, puesto y negocio", async () => {
-    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+  it("no envía la notificación si SMTP no está configurado", async () => {
+    ;(isMailConfigured as jest.Mock).mockReturnValue(false)
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    const fetchBody = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string)
-    expect(fetchBody).toHaveProperty("staff.email", "carlos@ejemplo.com")
-    expect(fetchBody).toHaveProperty("customer.name", "Ana García")
-    expect(fetchBody).toHaveProperty("service.name", "Corte")
-    expect(fetchBody).toHaveProperty("chair.name", "Silla Principal")
-    expect(fetchBody).toHaveProperty("business.name", "Peluquería Central")
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
+    expect(sendBookingNotificationEmail).not.toHaveBeenCalled()
   })
 
-  it("no llama al webhook si N8N_BOOKING_WEBHOOK_URL no está configurado", async () => {
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
-    await POST(makeRequest(validBody))
-    await new Promise((r) => setTimeout(r, 0))
-    expect(global.fetch).not.toHaveBeenCalled()
-  })
-
-  it("no llama al webhook si el chair no tiene usuario asignado", async () => {
-    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+  it("no envía la notificación si el chair no tiene usuario asignado", async () => {
     txMock.chair.findFirst.mockResolvedValue({ id: "c-1", name: "Silla Sin Staff", user: null })
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    expect(global.fetch).not.toHaveBeenCalled()
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
+    expect(sendBookingNotificationEmail).not.toHaveBeenCalled()
   })
 
-  it("no llama al webhook si el usuario del chair no tiene email", async () => {
-    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
+  it("no envía la notificación si el usuario del chair no tiene email", async () => {
     txMock.chair.findFirst.mockResolvedValue({
       id: "c-1",
       name: "Silla A",
@@ -251,16 +234,13 @@ describe("POST /api/public/bookings — webhook n8n", () => {
     })
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    expect(global.fetch).not.toHaveBeenCalled()
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
+    expect(sendBookingNotificationEmail).not.toHaveBeenCalled()
   })
 
-  it("no lanza error si el webhook falla (fire and forget)", async () => {
-    process.env.N8N_BOOKING_WEBHOOK_URL = "https://n8n.test/webhook/agendify-booking"
-    global.fetch = jest.fn().mockRejectedValue(new Error("Network error"))
+  it("no lanza error si el envío falla (fire and forget)", async () => {
+    ;(sendBookingNotificationEmail as jest.Mock).mockRejectedValue(new Error("SMTP error"))
     const res = await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
     expect(res.status).toBe(201)
-    delete process.env.N8N_BOOKING_WEBHOOK_URL
   })
 })

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { PHONE_REGEX, PHONE_VALIDATION_MESSAGE } from "@/constant"
+import { isMailConfigured, sendContactEmail } from "@/lib/mailer"
 
 const contactSchema = z.object({
   email: z.string().email({ message: "Ingresa un correo válido." }),
@@ -25,22 +26,17 @@ export async function POST(request: Request) {
 
     const { email, phone, message } = parsed.data
     const contactEmail = process.env.CONTACT_EMAIL ?? "hola@agendify.app"
-    const webhookUrl = process.env.N8N_CONTACT_WEBHOOK_URL
 
-    if (!webhookUrl) {
+    if (!isMailConfigured()) {
       return NextResponse.json(
         { error: "No se pudo enviar el mensaje. Intenta de nuevo." },
         { status: 500 }
       )
     }
 
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, phone, message, to: contactEmail }),
-    })
-
-    if (!response.ok) {
+    try {
+      await sendContactEmail({ email, phone, message, to: contactEmail })
+    } catch {
       return NextResponse.json(
         { error: "No se pudo enviar el mensaje. Intenta de nuevo." },
         { status: 500 }

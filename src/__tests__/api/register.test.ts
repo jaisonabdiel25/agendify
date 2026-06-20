@@ -14,9 +14,15 @@ jest.mock("crypto", () => ({
   randomInt: jest.fn(() => 483920),
 }))
 
+jest.mock("@/lib/mailer", () => ({
+  isMailConfigured: jest.fn(() => true),
+  sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+}))
+
 import { POST } from "@/app/api/auth/register/route"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { isMailConfigured, sendVerificationEmail } from "@/lib/mailer"
 
 const txMock = {
   user: {
@@ -44,7 +50,8 @@ const validBody = {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
+  ;(isMailConfigured as jest.Mock).mockReturnValue(true)
+  ;(sendVerificationEmail as jest.Mock).mockResolvedValue(undefined)
   ;(prisma.$transaction as jest.Mock).mockImplementation(
     async (fn: (tx: typeof txMock) => Promise<unknown>) => fn(txMock)
   )
@@ -262,54 +269,37 @@ describe("POST /api/auth/register — registro exitoso", () => {
   })
 })
 
-describe("POST /api/auth/register — webhook n8n", () => {
+describe("POST /api/auth/register — envío de correo", () => {
   beforeEach(() => {
     ;(prisma.invitation.findUnique as jest.Mock).mockResolvedValue(mockInvitation)
     ;(prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
     txMock.user.findFirst.mockResolvedValue(null)
   })
 
-  it("llama al webhook con name, email y code cuando N8N_WEBHOOK_URL está configurado", async () => {
-    process.env.N8N_WEBHOOK_URL = "https://n8n.test/webhook/agendify-register"
+  it("envía el correo de verificación con name, email y code cuando SMTP está configurado", async () => {
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://n8n.test/webhook/agendify-register",
+    expect(sendVerificationEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        method: "POST",
-        body: expect.stringContaining("juan@ejemplo.com"),
+        name: "Juan Pérez",
+        email: "juan@ejemplo.com",
+        code: expect.any(String),
       })
     )
-    delete process.env.N8N_WEBHOOK_URL
   })
 
-  it("incluye code en el cuerpo del webhook", async () => {
-    process.env.N8N_WEBHOOK_URL = "https://n8n.test/webhook/agendify-register"
+  it("no envía correo si SMTP no está configurado", async () => {
+    ;(isMailConfigured as jest.Mock).mockReturnValue(false)
     await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0]
-    const fetchBody = JSON.parse(fetchCall[1].body)
-    expect(fetchBody).toHaveProperty("code")
-    expect(typeof fetchBody.code).toBe("string")
-    expect(fetchBody).toHaveProperty("type", "register")
-    expect(fetchBody).not.toHaveProperty("verifyUrl")
-    delete process.env.N8N_WEBHOOK_URL
+    expect(sendVerificationEmail).not.toHaveBeenCalled()
   })
 
-  it("no llama a fetch si N8N_WEBHOOK_URL no está configurado", async () => {
-    delete process.env.N8N_WEBHOOK_URL
-    await POST(makeRequest(validBody))
-    await new Promise((r) => setTimeout(r, 0))
-    expect(global.fetch).not.toHaveBeenCalled()
-  })
-
-  it("retorna 201 aunque el webhook falle (fire-and-forget)", async () => {
-    process.env.N8N_WEBHOOK_URL = "https://n8n.test/webhook/agendify-register"
-    ;(global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"))
+  it("retorna 201 aunque el envío de correo falle (fire-and-forget)", async () => {
+    ;(sendVerificationEmail as jest.Mock).mockRejectedValue(new Error("SMTP error"))
     const res = await POST(makeRequest(validBody))
     await new Promise((r) => setTimeout(r, 0))
     expect(res.status).toBe(201)
-    delete process.env.N8N_WEBHOOK_URL
   })
 })
 

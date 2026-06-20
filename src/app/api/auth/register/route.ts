@@ -3,7 +3,8 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import crypto from "crypto"
-import { EMAIL_VERIFY_EXPIRY_HOURS, EMAIL_VERIFY_CODE_DIGITS, WEBHOOK_EVENT_REGISTER } from "@/constant"
+import { EMAIL_VERIFY_EXPIRY_HOURS, EMAIL_VERIFY_CODE_DIGITS } from "@/constant"
+import { isMailConfigured, sendVerificationEmail } from "@/lib/mailer"
 
 const registerSchema = z.object({
   invitationCode: z.string().min(1),
@@ -88,14 +89,8 @@ export async function POST(request: Request) {
       })
     })
 
-    const webhookUrl = process.env.N8N_WEBHOOK_URL
-
-    if (webhookUrl) {
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, code: emailVerifyToken, type: WEBHOOK_EVENT_REGISTER }),
-      }).catch(() => {})
+    if (isMailConfigured()) {
+      sendVerificationEmail({ name, email, code: emailVerifyToken }).catch(() => {})
     }
 
     return NextResponse.json(

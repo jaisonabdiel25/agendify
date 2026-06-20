@@ -1,4 +1,10 @@
+jest.mock("@/lib/mailer", () => ({
+  isMailConfigured: jest.fn(() => true),
+  sendContactEmail: jest.fn().mockResolvedValue(undefined),
+}))
+
 import { POST } from "@/app/api/contact/route"
+import { isMailConfigured, sendContactEmail } from "@/lib/mailer"
 
 const validBody = {
   email: "usuario@ejemplo.com",
@@ -16,12 +22,8 @@ function makeRequest(body: unknown) {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  global.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
-  process.env.N8N_CONTACT_WEBHOOK_URL = "https://n8n.test/webhook/agendify-contact"
-})
-
-afterEach(() => {
-  delete process.env.N8N_CONTACT_WEBHOOK_URL
+  ;(isMailConfigured as jest.Mock).mockReturnValue(true)
+  ;(sendContactEmail as jest.Mock).mockResolvedValue(undefined)
 })
 
 describe("POST /api/contact — validación", () => {
@@ -80,39 +82,28 @@ describe("POST /api/contact — envío exitoso", () => {
     expect(body.ok).toBe(true)
   })
 
-  it("llama al webhook de N8N con el payload correcto", async () => {
+  it("envía el correo de contacto con el payload correcto", async () => {
     await POST(makeRequest(validBody))
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://n8n.test/webhook/agendify-contact",
-      expect.objectContaining({ method: "POST" })
-    )
-    const fetchBody = JSON.parse(
-      (global.fetch as jest.Mock).mock.calls[0][1].body
-    )
-    expect(fetchBody.email).toBe("usuario@ejemplo.com")
-    expect(fetchBody.phone).toBe("61234567")
-    expect(fetchBody.message).toBe(validBody.message)
-    expect(fetchBody.to).toBeDefined()
+    expect(sendContactEmail).toHaveBeenCalledTimes(1)
+    const arg = (sendContactEmail as jest.Mock).mock.calls[0][0]
+    expect(arg.email).toBe("usuario@ejemplo.com")
+    expect(arg.phone).toBe("61234567")
+    expect(arg.message).toBe(validBody.message)
+    expect(arg.to).toBeDefined()
   })
 })
 
-describe("POST /api/contact — error del webhook", () => {
-  it("retorna 500 cuando el webhook responde con error HTTP", async () => {
-    ;(global.fetch as jest.Mock).mockResolvedValue({ ok: false } as Response)
+describe("POST /api/contact — error del envío", () => {
+  it("retorna 500 cuando el envío lanza una excepción", async () => {
+    ;(sendContactEmail as jest.Mock).mockRejectedValue(new Error("SMTP error"))
     const res = await POST(makeRequest(validBody))
     expect(res.status).toBe(500)
     const body = await res.json()
     expect(body.error).toMatch(/enviar/i)
   })
 
-  it("retorna 500 cuando fetch lanza una excepción", async () => {
-    ;(global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"))
-    const res = await POST(makeRequest(validBody))
-    expect(res.status).toBe(500)
-  })
-
-  it("retorna 500 cuando N8N_CONTACT_WEBHOOK_URL no está configurado", async () => {
-    delete process.env.N8N_CONTACT_WEBHOOK_URL
+  it("retorna 500 cuando SMTP no está configurado", async () => {
+    ;(isMailConfigured as jest.Mock).mockReturnValue(false)
     const res = await POST(makeRequest(validBody))
     expect(res.status).toBe(500)
   })
